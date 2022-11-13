@@ -67,10 +67,9 @@ class Term:
         if self.isAbstraction:
             return self._body.redexes
         # self is Application
-        temp = [self ]if self.isBetaRedex else []
+        temp = [self] if self.isBetaRedex else []
         temp += (self._sub.redexes + self._obj.redexes)
         return temp
-
 
     @property
     def _vars(self):
@@ -91,7 +90,7 @@ class Term:
             for var in auxvars:
                 try:
                     for key in {'free', 'bound'}:
-                       vars[var][key] += self._obj._vars[var][key]
+                        vars[var][key] += self._obj._vars[var][key]
                 except KeyError:
                     vars[var] = dict(self._obj._vars[var])
             return vars
@@ -106,117 +105,106 @@ class Term:
 
     @property
     def verticesNumber(self):
-      """return the number of nodes in the tree representing the lambda term"""
-      if self.isAtom:
-        return 1
-      elif self.isApplication:
-        return 1 + self._sub.verticesNumber + self._obj.verticesNumber
-      else: # self is Abstraction
-        return 1 + self._body.verticesNumber
-
-    def hasNormalForm(self, strategy):
-      """
-      :param strategy: OneStepStrategy
-      """
-      term = self._updateBoundVariables()
-      count = 0
-      while term.redexes != []:
-        term = term._betaConversion(strategy)
-        count += 1
-        if term.verticesNumber > 100000 or count > 2000:
-          return False
-      return True
+        """return the number of nodes in the tree representing the lambda term"""
+        if self.isAtom:
+            return 1
+        elif self.isApplication:
+            return 1 + self._sub.verticesNumber + self._obj.verticesNumber
+        else:  # self is Abstraction
+            return 1 + self._body.verticesNumber
 
     def normalize(self, strategy):
-      """
+        """
       :param strategy: OneStepStrategy
       :return tuple of the normal form of the term and number of steps of betta reduction
       """
-      term = self._updateBoundVariables()
-      count = 0
-      while term.redexes != []:
-        term = term._betaConversion(strategy)
-        count += 1
-      return (term, count)
+        term = self._updateBoundVariables()
+        count = 0
+        while term.redexes != []:
+            term = term._betaConversion(strategy)
+            count += 1
+            if term.verticesNumber > 7000 or count > 400:
+                return (self, float('inf'))
+        return (term, count)
 
     def _betaConversion(self, strategy):
-      """
+        """
       :param strategy: OneStepStrategy
       :return term with redex eliminated using the given strategy
       """
-      index = strategy.redexIndex(self)
-      subterm = self.subterm(index)
-      reducedTerm = subterm._removeOuterRedex()
-      return self.setSubterm(index, reducedTerm)
+        index = strategy.redexIndex(self)
+        subterm = self.subterm(index)
+        reducedTerm = subterm._removeOuterRedex()
+        return self.setSubterm(index, reducedTerm)
 
     def subterm(self, index: int):
-      """
+        """
       By representing the term as a tree, a subtree is returned, which is also a lambda term.
       The vertex of this subtree has a given index in the topological sorting of the vertices of the original term.
       :param index - subterm index
       :return: subterm: Term
       """
-      if index == 1:
-        return self
+        if index == 1:
+            return self
 
-      if self.isAtom:
-        ValueError('index value is incorrect')
-      elif self.isApplication:
-        if self._sub.verticesNumber + 1 >= index:
-          return self._sub.subterm(index - 1)
-        else:
-          return self._obj.subterm(index - self._sub.verticesNumber - 1)
-      else: # self is Abstraction
-        return self._body.subterm(index - 1)
+        if self.isAtom:
+            ValueError('index value is incorrect')
+        elif self.isApplication:
+            if self._sub.verticesNumber + 1 >= index:
+                return self._sub.subterm(index - 1)
+            else:
+                return self._obj.subterm(index - self._sub.verticesNumber - 1)
+        else:  # self is Abstraction
+            return self._body.subterm(index - 1)
 
     def setSubterm(self, index: int, term):
-      """
+        """
       By representing the term as a tree, a subtree is set, which is also a lambda term.
       The vertex of this subtree has a given index in the topological sorting of the vertices of the original term.
       :param index - subterm index
       :param term - λ-term to which the subterm will be replaced
       :return: updated λ-term
       """
-      if index == 1:
-        return term
+        if index == 1:
+            return term
 
-      if self.isAtom:
-        ValueError('index value is incorrect')
-      elif self.isApplication:
-        if self._sub.verticesNumber + 1 >= index:
-          return Application(self._sub.setSubterm(index - 1, term), self._obj)
-        else:
-          return Application(self._sub, self._obj.setSubterm(index - self._sub.verticesNumber - 1, term))
-      else: # self is Abstraction
-        return Abstraction(self._head, self._body.setSubterm(index - 1, term))
+        if self.isAtom:
+            ValueError('index value is incorrect')
+        elif self.isApplication:
+            if self._sub.verticesNumber + 1 >= index:
+                return Application(self._sub.setSubterm(index - 1, term), self._obj)
+            else:
+                return Application(self._sub, self._obj.setSubterm(index - self._sub.verticesNumber - 1, term))
+        else:  # self is Abstraction
+            return Abstraction(self._head, self._body.setSubterm(index - 1, term))
 
     def _updateBoundVariables(self):
-      """return λ-term with updated bound variables"""
-      if self.isAtom:
-        return self
-      elif self.isApplication:
-        return Application(self._sub._updateBoundVariables(), self._obj._updateBoundVariables())
-      else: # self is Abstraction
-        newVar = Var()
-        return Abstraction(newVar, self._body._replaceVariable(self._head, Atom(newVar))._updateBoundVariables())
+        """return λ-term with updated bound variables"""
+        if self.isAtom:
+            return self
+        elif self.isApplication:
+            return Application(self._sub._updateBoundVariables(), self._obj._updateBoundVariables())
+        else:  # self is Abstraction
+            newVar = Var()
+            return Abstraction(newVar, self._body._replaceVariable(self._head, Atom(newVar))._updateBoundVariables())
 
     def _removeOuterRedex(self):
-      """apply the betta conversion to the lambda term, removing the outer betta redex"""
-      if self.isBetaRedex:
-        head = self._sub._head
-        body = self._sub._body
-        return body._replaceVariable(head, self._obj)
-      else:
-        return self
+        """apply the betta conversion to the lambda term, removing the outer betta redex"""
+        if self.isBetaRedex:
+            head = self._sub._head
+            body = self._sub._body
+            return body._replaceVariable(head, self._obj)
+        else:
+            return self
 
     def _replaceVariable(self, var: Var, term):
-      """return λ-term with replaced variable"""
-      if self.isAtom:
-        return term if self._var == var else self
-      elif self.isApplication:
-        return Application(self._sub._replaceVariable(var, term), self._obj._replaceVariable(var, term))
-      else: # self is Abstraction
-        return Abstraction(self._head, self._body._replaceVariable(var, term))
+        """return λ-term with replaced variable"""
+        if self.isAtom:
+            return term if self._var == var else self
+        elif self.isApplication:
+            return Application(self._sub._replaceVariable(var, term), self._obj._replaceVariable(var, term))
+        else:  # self is Abstraction
+            return Abstraction(self._head, self._body._replaceVariable(var, term))
 
 
 class Atom(Term):
@@ -228,7 +216,7 @@ class Atom(Term):
 
 
 class Application(Term):
-    def __init__(self, X : Term, Y : Term):
+    def __init__(self, X: Term, Y: Term):
         if isinstance(X, Term) and isinstance(Y, Term):
             self._sub = X
             self._obj = Y
