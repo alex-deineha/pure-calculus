@@ -1,5 +1,6 @@
 from calculus.generation import genTerm
 from calculus.strategy import *
+import numpy as np
 
 UPLIMIT = 60
 DOWNLIMIT = 50
