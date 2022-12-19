@@ -11,17 +11,17 @@ STRATEGIES = [LeftmostOutermostStrategy(), RightmostInnermostStrategy(), Leftmos
 
 
 def is_reduced(term):
-    return False
+    return term.redexes == []
 
 
 def have_seen_before(history, term):
     return False
 
 
-def reward_function(history, term):
+def reward_function(term, history=None):
     if is_reduced(term):
         return 1.0
-    if have_seen_before(history, term):
+    if history and have_seen_before(history, term):
         return -0.25
 
     return -0.04
@@ -31,11 +31,21 @@ def f(term):
     return len(term)
 
 
-def is_done(term, cumulative_reward):
+def number_of_steps_is_too_big():
+    # if term.verticesNumber > 7000 or count > 400:
+    #     return (self, float('inf'))
+    # return (term, count)
+    pass
+
+
+def is_done(term, cumulative_reward=None):
     if is_reduced(term):
         return True
-    if cumulative_reward <= -0.5 * f(term):
+    if cumulative_reward and (cumulative_reward <= -0.5 * f(term)):
         return True
+    if number_of_steps_is_too_big():
+        return True
+
     return False
 
 
@@ -60,12 +70,11 @@ class CustomEnv(gym.Env):
         self.reset()
 
     def step(self, strategy):
-        index = self.strategies[strategy].redexIndex(self.term)
+        self.term = self.term._betaConversion(self.strategies[strategy])
 
-        self.term = self.term._betaConversion_index(index)
         obs = self.term
-        reward = -1
-        done = self.term.redexes == []
+        reward = reward_function(None, self.term)
+        done = is_done(self.term, cumulative_reward)
         return obs, reward, done, {}
 
     def reset(self, **kwargs):
