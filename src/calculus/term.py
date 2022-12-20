@@ -127,6 +127,28 @@ class Term:
                 return (self, float('inf'))
         return (term, count)
 
+    def normalize_step(self, strategy):
+        """
+        :param strategy: OneStepStrategy
+        :return True -- if it done Betta conversion step
+                False -- otherwise
+        """
+        if self.normalization_term is None:
+            self.normalization_term = self._updateBoundVariables()
+
+        if self.normalization_term.redexes != []:
+            if self.normalization_term.verticesNumber > 7000:
+                return True
+            self.normalization_term = self.normalization_term._betaConversion(strategy)
+            return True
+        return False
+
+    def restart_normalization(self):
+        """
+        Restart, for possibility to do normalization
+        """
+        self.normalization_term = None
+
     def _betaConversion(self, strategy):
         """
       :param strategy: OneStepStrategy
