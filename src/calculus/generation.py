@@ -28,5 +28,34 @@ def genTerm(p: float, uplimit: int, vars: List[Var] = [], trigger_by_application
             return None
 
 
+def gen_lambda_terms(count=100, down_vertices_limit=50, up_vertices_limit=60):
+    def filter_terms(term):
+        return term and down_vertices_limit < term.verticesNumber < up_vertices_limit
+
+    def flatten(t):
+        return [item for sublist in t for item in sublist]
+
+    terms = []
+    while True:
+        terms += flatten([list(
+            filter(filter_terms, [genTerm(p, up_vertices_limit)
+                                 for i in range(7000)])) for p in np.arange(0.49, 0.51, 0.02)])
+        if len(terms) > count:
+            break
+
+    terms = terms[:count]
+    return terms
 
 
+if __name__ == '__main__':
+    terms = gen_lambda_terms(count=100)
+    print(len(terms))
+    print(terms[0])
+
+    from strategy import LeftmostOutermostStrategy
+    strat = LeftmostOutermostStrategy()
+    i = 0
+
+    terms[0].restart_normalizetion()
+    while terms[0].normalize_step(strat):
+        print("step", terms[0].normalization_term)
