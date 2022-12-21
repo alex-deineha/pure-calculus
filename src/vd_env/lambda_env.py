@@ -25,22 +25,32 @@ class LambdaEnv(gym.Env):
         # check is it possible to normalize the term more
         # by calculating total reward
         total_term_reward = self._max_step_term + sum([row[1] for row in self.state[self.term_idx]])
-        print(self.term_idx, total_term_reward)
+        # print(self.term_idx, total_term_reward)
 
-        # check is it done with all terms normalization:
-        done = ((not is_done_norm) or total_term_reward == 0) \
-               and ((self._count_terms - 1) == self.term_idx)
-
-        if (not is_done_norm) or (total_term_reward == 0):
-            self.lambda_terms[self.term_idx].restart_normalization()
-
-        if total_term_reward == 0 or (not is_done_norm):
-            self.term_idx = self.term_idx if ((self._count_terms - 1) == self.term_idx) \
-                else self.term_idx + 1
+        # check is it done with current term normalization:
+        done = (not is_done_norm) or total_term_reward == 0
 
         debug = None
         reward = -1 if is_done_norm else 0
         return self.state, reward, done, debug
+
+    def next_term(self):
+        """
+        Select the next term idx if possible
+        """
+        self.term_idx = self.term_idx + 1 if (self._count_terms - 1) > self.term_idx else self.term_idx
+
+    def is_has_next_term(self):
+        """
+        return: bool True if it's possible to select the next term
+        """
+        return (self._count_terms - 1) > self.term_idx
+
+    def get_current_term_idx(self):
+        """
+        return: int index of selected term
+        """
+        return self.term_idx
 
     def reset(self):
         self.term_idx = 0
@@ -65,10 +75,13 @@ def get_simple_env(max_step_term=500, count_terms=100):
 
 
 if __name__ == '__main__':
-    lambda_env = get_simple_env(count_terms=100, max_step_term=30)
+    lambda_env = get_simple_env(count_terms=30, max_step_term=30)
     is_not_done = True
-    while is_not_done:
-        _, _, done, _ = lambda_env.step(0)
-        is_not_done = not done
+    while lambda_env.is_has_next_term():
+        while True:
+            _, _, done, _ = lambda_env.step(0)
+            if done:
+                break
+        lambda_env.next_term()
 
     lambda_env.render()
