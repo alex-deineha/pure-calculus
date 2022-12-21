@@ -2,7 +2,7 @@ import random
 from abc import ABC, abstractmethod
 from typing import List
 
-from term import Term
+from calculus.term import Term
 
 
 class OneStepStrategy(ABC):

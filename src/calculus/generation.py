@@ -1,5 +1,6 @@
-from strategy import *
-from term import Atom, Var, Abstraction, Application
+from calculus.strategy import *
+from calculus.term import Atom, Var, Abstraction, Application
+import numpy as np
 
 
 def genTerm(p: float, uplimit: int, vars: List[Var] = [], trigger_by_application=False):
