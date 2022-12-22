@@ -1,6 +1,9 @@
 import random
-from lambda_env import get_simple_env
-from e_greedy_policy import e_greedy_policy
+import sys
+sys.path.append('../')
+
+from vd_env.lambda_env import get_simple_env
+from vd_env.e_greedy_policy import e_greedy_policy
 import matplotlib.pyplot as plt
 import numpy as np
 
