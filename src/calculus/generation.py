@@ -1,6 +1,8 @@
+from random import random
+import numpy as np
+
 from calculus.strategy import *
 from calculus.term import Atom, Var, Abstraction, Application
-import numpy as np
 
 
 def genTerm(p: float, uplimit: int, vars: List[Var] = [], trigger_by_application=False):
@@ -46,6 +48,30 @@ def gen_lambda_terms(count=100, down_vertices_limit=50, up_vertices_limit=60):
 
     terms = terms[:count]
     return terms
+
+
+def gen_filtered_lambda_terms(count_terms=100, down_vertices_limit=50, up_vertices_limit=60):
+    def filter_terms(term):
+        return term and down_vertices_limit < term.verticesNumber < up_vertices_limit
+
+    def flatten(t):
+        return [item for sublist in t for item in sublist]
+
+    terms = flatten(
+        [list(filter(filterTerms, [genTerm(p, up_vertices_limit)
+                                   for i in range(7000)])) for p in np.arange(0.49, 0.51, 0.02)])
+    stepsLO = list(map(lambda term: term.normalize(LeftmostOutermostStrategy())[1], terms))
+
+    terms_with_normal_form = []
+    stepsLO_temp = []
+    for i, term in enumerate(terms):
+        if stepsLO[i] != float('inf'):
+            terms_with_normal_form.append(term)
+            stepsLO_temp.append(stepsLO[i])
+    terms = terms_with_normal_form[:count_terms]
+    stepsLO = stepsLO_temp[:count_terms]
+
+    return terms, stepsLO
 
 
 if __name__ == '__main__':
