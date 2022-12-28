@@ -8,14 +8,17 @@ from calculus.strategy import LeftmostOutermostStrategy, RightmostOutermostStrat
 
 
 class LambdaEnv(gym.Env):
-    def __init__(self, strategies, max_step_term=500, count_terms=100):
+    def __init__(self, strategies, lambda_terms=None, max_step_term=500, count_terms=100):
         self.lambda_terms = None
         self.term_idx = 0
         self.state = None
         self._max_step_term = max_step_term
         self._count_terms = count_terms
         self.strategies = strategies
-        self.reset()
+        if lambda_terms is None:
+            self.reset()
+        else:
+            self.reset_(lambda_terms)
 
     def step(self, action):
         selected_strategy = self.strategies[action]
@@ -52,14 +55,20 @@ class LambdaEnv(gym.Env):
         """
         return self.term_idx
 
-    def reset(self):
+    def reset_(self, lambda_terms):
         self.term_idx = 0
-        self.lambda_terms = gen_lambda_terms(count=self._count_terms)
+        if lambda_terms is None:
+            self.lambda_terms = gen_lambda_terms(count=self._count_terms)
+        else:
+            self.lambda_terms = lambda_terms
         self.state = {}
         for i in range(self._count_terms):
             self.state[i] = []
             self.lambda_terms[i].restart_normalization()
         return self.state
+
+    def reset(self):
+        return self.reset_(None)
 
     def render(self, mode="ascii"):
         for i in range(self.term_idx + 1):
