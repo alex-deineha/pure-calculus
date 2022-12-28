@@ -2,6 +2,8 @@ import gym
 import sys
 import numpy as np
 
+from tqdm import tqdm
+
 sys.path.append('../')
 from calculus.generation import gen_lambda_terms
 from calculus.strategy import LeftmostOutermostStrategy, RightmostOutermostStrategy
@@ -84,13 +86,14 @@ def get_simple_env(max_step_term=500, count_terms=100):
 
 
 if __name__ == '__main__':
-    lambda_env = get_simple_env(count_terms=30, max_step_term=30)
+    lambda_env = get_simple_env(count_terms=300, max_step_term=80)
     is_not_done = True
-    while lambda_env.is_has_next_term():
-        while True:
-            _, _, done, _ = lambda_env.step(0)
-            if done:
-                break
+    for _ in tqdm(range(300)):
+        if lambda_env.is_has_next_term():
+            while True:
+                _, _, done, _ = lambda_env.step(0)
+                if done:
+                    break
         lambda_env.next_term()
 
     lambda_env.render()
