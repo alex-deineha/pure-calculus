@@ -1,4 +1,6 @@
+import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 from fitter import Fitter, get_common_distributions
 
 
@@ -26,6 +28,34 @@ def draw_hist(data):
     f_ln.fit()
     mu, sigma = f_ln.fitted_param["norm"]
     print(f'Log Norm distribution params: ({mu}, {sigma}); expected value = {np.e ** (mu + (sigma ** 2) / 2)}')
+
+
+def draw_cumulative_avg(steps, title='Cum avg for approachco',
+                        x_label='Trials', y_label='Average steps'):
+    cum_rewards = np.cumsum(steps)
+
+    for i in range(len(cum_rewards)):
+        cum_rewards[i] /= i + 1
+    plt.plot(range(1, len(cum_rewards) + 1), cum_rewards)
+    plt.title(title)
+    plt.xlabel(x_label)
+    plt.ylabel(y_label)
+    plt.show()
+
+
+def draw_cumulative_avg_comparison(comp_data: dict,
+                                   title='Cum avg for approaches',
+                                   x_label='Trials', y_label='Average steps'):
+    for key in comp_data.keys():
+        cum_reward = np.cumsum(comp_data[key][0])
+        cum_reward = [cum_reward[i] / (i + 1) for i in range(len(cum_reward))]
+        plt.plot(range(1, len(cum_reward) + 1), cum_reward, comp_data[key][1], label=key)
+
+    plt.xlabel(x_label)
+    plt.ylabel(y_label)
+    plt.title(title)
+    plt.legend(loc='upper right')
+    plt.show()
 
 
 def draw_2d_distribution(ax, x, y, xlabel, ylabel):
@@ -59,16 +89,16 @@ def draw_2d_strategy_distribution(ax, x, y, xlabel, ylabel):
 
 
 def draw_plot(x, y, z, q, labels, colors):
-  x = list(map(lambda v: -1 if v == float('inf') else v, x))
-  y = list(map(lambda v: -1 if v == float('inf') else v, y))
-  z = list(map(lambda v: -1 if v == float('inf') else v, z))
-  q = list(map(lambda v: -1 if v == float('inf') else v, q))
+    x = list(map(lambda v: -1 if v == float('inf') else v, x))
+    y = list(map(lambda v: -1 if v == float('inf') else v, y))
+    z = list(map(lambda v: -1 if v == float('inf') else v, z))
+    q = list(map(lambda v: -1 if v == float('inf') else v, q))
 
-  data = pd.DataFrame(zip(x, y, z, q), columns = labels)
-  ax0 = data.plot(figsize=(20,10), kind='bar', color=colors)
-  ax0.set(title = 'Distribution of number of reduction steps for each term',
-          xlabel = 'Term index',
-          ylabel = 'Number of reduction steps')
-  ax0.legend(prop={'size': 10})
-  plt.show()
-  return ax0
+    data = pd.DataFrame(zip(x, y, z, q), columns=labels)
+    ax0 = data.plot(figsize=(20, 10), kind='bar', color=colors)
+    ax0.set(title='Distribution of number of reduction steps for each term',
+            xlabel='Term index',
+            ylabel='Number of reduction steps')
+    ax0.legend(prop={'size': 10})
+    plt.show()
+    return ax0
