@@ -2,7 +2,7 @@ import random
 import numpy as np
 
 
-def e_greedy_policy(env, state, explore=10, count_strategies=2, epsilon=.1):
+def e_greedy_policy(env, state, explore=10, count_strategies=2, epsilon=.1, deterministic=True):
     term_trials = env.get_current_term_idx()
     total_explore_trials = count_strategies * explore
 
@@ -19,5 +19,9 @@ def e_greedy_policy(env, state, explore=10, count_strategies=2, epsilon=.1):
     for i in range(total_explore_trials):
         avg_rewards[state[i][0][0]] -= len(state[i])
 
-    best_strategy = np.argmax(avg_rewards)
+    if deterministic:
+        best_strategy = np.argmax(avg_rewards)
+    else:
+        best_strategy = np.random.choice(np.arange(count_strategies), p=avg_rewards)
+
     return best_strategy
