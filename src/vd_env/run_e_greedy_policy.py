@@ -1,7 +1,7 @@
-import random
 import sys
-sys.path.append('../')
+from tqdm import tqdm
 
+sys.path.append('../')
 from vd_env.lambda_env import get_simple_env
 from vd_env.e_greedy_policy import e_greedy_policy
 import matplotlib.pyplot as plt
@@ -14,7 +14,8 @@ def run_e_greedy_policy(environment, exploration=10, max_term_reward=30, epsilon
 
     while environment.is_has_next_term():
         while True:
-            action = e_greedy_policy(environment, state, explore=exploration, count_strategies=len(env.strategies),
+            action = e_greedy_policy(environment, state, explore=exploration,
+                                     count_strategies=len(environment.strategies),
                                      epsilon=epsilon, deterministic=deterministic)
             state, _, done, _ = environment.step(action)
             if done:
