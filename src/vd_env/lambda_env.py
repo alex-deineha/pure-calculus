@@ -6,7 +6,7 @@ from tqdm import tqdm
 
 sys.path.append('../')
 from calculus.generation import gen_lambda_terms
-from calculus.strategy import LeftmostOutermostStrategy, RightmostOutermostStrategy
+from calculus.strategy import LeftmostOutermostStrategy, RightmostInnermostStrategy
 
 
 class LambdaEnv(gym.Env):
@@ -23,6 +23,9 @@ class LambdaEnv(gym.Env):
             self.reset_(lambda_terms)
 
     def step(self, action):
+        if self.term_idx >= self._count_terms:
+            return self.state, 0, True, None
+
         selected_strategy = self.strategies[action]
         is_done_norm = self.lambda_terms[self.term_idx].normalize_step(selected_strategy)
         self.state[self.term_idx].append([action, -1 if is_done_norm else 0])
@@ -43,13 +46,15 @@ class LambdaEnv(gym.Env):
         """
         Select the next term idx if possible
         """
-        self.term_idx = self.term_idx + 1 if (self._count_terms - 1) > self.term_idx else self.term_idx
+        # self.term_idx = self.term_idx + 1 if (self._count_terms - 1) > self.term_idx else self.term_idx
+        self.term_idx += 1
 
     def is_has_next_term(self):
         """
         return: bool True if it's possible to select the next term
         """
-        return (self._count_terms - 1) > self.term_idx
+        # return (self._count_terms - 1) > self.term_idx
+        return self._count_terms > self.term_idx
 
     def get_current_term_idx(self):
         """
@@ -72,14 +77,22 @@ class LambdaEnv(gym.Env):
     def reset(self):
         return self.reset_(None)
 
+    def reset_soft(self):
+        self.term_idx = 0
+        self.state = {}
+        for i in range(self._count_terms):
+            self.state[i] = []
+            self.lambda_terms[i].restart_normalization()
+        return self.state
+
     def render(self, mode="ascii"):
-        for i in range(self.term_idx + 1):
+        for i in range(self.term_idx):
             total_term_reward = self._max_step_term + sum([row[1] for row in self.state[i]])
             print('Term No_{}: total reward:{}'.format(i, total_term_reward))
 
 
 def get_simple_env(max_step_term=500, count_terms=100):
-    strategies = [LeftmostOutermostStrategy(), RightmostOutermostStrategy()]
+    strategies = [LeftmostOutermostStrategy(), RightmostInnermostStrategy()]
     return LambdaEnv(strategies=strategies,
                      max_step_term=max_step_term,
                      count_terms=count_terms)
