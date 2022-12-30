@@ -15,13 +15,16 @@ def e_greedy_policy(env, state, explore=10, count_strategies=2, epsilon=.1, dete
         return random.randint(0, count_strategies - 1)
 
     # exploitation
-    avg_rewards = [0 for _ in range(count_strategies)]
+    avg_rewards = np.zeros(count_strategies)
     for i in range(total_explore_trials):
         avg_rewards[state[i][0][0]] -= len(state[i])
 
     if deterministic:
         best_strategy = np.argmax(avg_rewards)
     else:
-        best_strategy = np.random.choice(np.arange(count_strategies), p=avg_rewards)
+        probab = avg_rewards / np.sum(avg_rewards)
+        probab = 1. - probab
+        probab = probab / np.sum(probab)
+        best_strategy = np.random.choice(np.arange(count_strategies), p=probab)
 
     return best_strategy
