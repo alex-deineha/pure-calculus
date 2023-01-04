@@ -54,7 +54,6 @@ def e_greedy_action_based_policy(env, state, explore_steps=100, count_strategies
             avg_rewards[action] += reward
             steps_per_strategy[action] += 1
     avg_rewards = avg_rewards / steps_per_strategy
-    print(avg_rewards)
 
     if deterministic:
         best_strategy = np.argmax(avg_rewards)
