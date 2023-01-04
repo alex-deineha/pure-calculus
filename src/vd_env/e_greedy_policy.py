@@ -28,3 +28,40 @@ def e_greedy_policy(env, state, explore=10, count_strategies=2, epsilon=.1, dete
         best_strategy = np.random.choice(np.arange(count_strategies), p=probab)
 
     return best_strategy
+
+
+def e_greedy_action_based_policy(env, state, explore_steps=100, count_strategies=2, epsilon=.1, deterministic=True):
+    # exploration
+    trial_steps = 0
+    for term_story in state.values():
+        trial_steps += len(term_story)
+        if trial_steps > explore_steps:
+            break
+
+    if trial_steps <= explore_steps:
+        return trial_steps % count_strategies
+        # return random.randint(0, count_strategies - 1)    # which one?
+
+    # random strategy with some epsilon probability
+    if random.random() < epsilon:
+        return random.randint(0, count_strategies - 1)
+
+    # exploitation
+    avg_rewards = np.zeros(count_strategies)
+    steps_per_strategy = np.zeros(count_strategies)
+    for term_story in state.values():
+        for action, reward in term_story:
+            avg_rewards[action] += reward
+            steps_per_strategy[action] += 1
+    avg_rewards = avg_rewards / steps_per_strategy
+    print(avg_rewards)
+
+    if deterministic:
+        best_strategy = np.argmax(avg_rewards)
+    else:
+        probab = avg_rewards / np.sum(avg_rewards)
+        probab = 1. - probab
+        probab = probab / np.sum(probab)
+        best_strategy = np.random.choice(np.arange(count_strategies), p=probab)
+
+    return best_strategy
