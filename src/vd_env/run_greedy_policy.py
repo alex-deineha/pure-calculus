@@ -9,7 +9,7 @@ import numpy as np
 
 
 def run_greedy_policy(environment, exploration=10, max_term_reward=30):
-    state = environment.reset()
+    state = environment.reset_soft()
     rewards = []
 
     while environment.is_has_next_term():
@@ -21,9 +21,9 @@ def run_greedy_policy(environment, exploration=10, max_term_reward=30):
         environment.next_term()
 
     for term_history in state.values():
-        rewards.append(max_term_reward - len(term_history))
+        rewards.append(max_term_reward - (len(term_history) - 1))
 
-    environment.close()
+    # environment.close()
     return environment, rewards
 
 
