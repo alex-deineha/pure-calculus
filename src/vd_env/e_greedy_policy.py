@@ -2,7 +2,9 @@ import random
 import numpy as np
 
 
-def e_greedy_policy(env, state, explore=10, count_strategies=2, epsilon=.1, deterministic=True):
+def e_greedy_policy(
+    env, state, explore=10, count_strategies=2, epsilon=0.1, deterministic=True
+):
     term_trials = env.get_current_term_idx()
     total_explore_trials = count_strategies * explore
 
@@ -23,14 +25,16 @@ def e_greedy_policy(env, state, explore=10, count_strategies=2, epsilon=.1, dete
         best_strategy = np.argmax(avg_rewards)
     else:
         probab = avg_rewards / np.sum(avg_rewards)
-        probab = 1. - probab
+        probab = 1.0 - probab
         probab = probab / np.sum(probab)
         best_strategy = np.random.choice(np.arange(count_strategies), p=probab)
 
     return best_strategy
 
 
-def e_greedy_action_based_policy(env, state, explore_steps=100, count_strategies=2, epsilon=.1, deterministic=True):
+def e_greedy_action_based_policy(
+    env, state, explore_steps=100, count_strategies=2, epsilon=0.1, deterministic=True
+):
     # exploration
     trial_steps = 0
     for term_story in state.values():
@@ -59,7 +63,7 @@ def e_greedy_action_based_policy(env, state, explore_steps=100, count_strategies
         best_strategy = np.argmax(avg_rewards)
     else:
         probab = avg_rewards / np.sum(avg_rewards)
-        probab = 1. - probab
+        probab = 1.0 - probab
         probab = probab / np.sum(probab)
         best_strategy = np.random.choice(np.arange(count_strategies), p=probab)
 

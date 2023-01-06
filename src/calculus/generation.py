@@ -41,9 +41,17 @@ def gen_lambda_terms(count=100, down_vertices_limit=50, up_vertices_limit=60):
 
     terms = []
     while True:
-        terms += flatten([list(
-            filter(filter_terms, [genTerm(p, up_vertices_limit)
-                                 for i in range(7000)])) for p in np.arange(0.49, 0.51, 0.02)])
+        terms += flatten(
+            [
+                list(
+                    filter(
+                        filter_terms,
+                        [genTerm(p, up_vertices_limit) for i in range(7000)],
+                    )
+                )
+                for p in np.arange(0.49, 0.51, 0.02)
+            ]
+        )
         if len(terms) > count:
             break
 
@@ -51,7 +59,9 @@ def gen_lambda_terms(count=100, down_vertices_limit=50, up_vertices_limit=60):
     return terms
 
 
-def gen_filtered_lambda_terms(count_terms=100, down_vertices_limit=50, up_vertices_limit=60):
+def gen_filtered_lambda_terms(
+    count_terms=100, down_vertices_limit=50, up_vertices_limit=60
+):
     def filter_terms(term):
         return term and down_vertices_limit < term.verticesNumber < up_vertices_limit
 
@@ -60,34 +70,45 @@ def gen_filtered_lambda_terms(count_terms=100, down_vertices_limit=50, up_vertic
 
     terms = []
     while True:
-        terms += flatten([list(
-            filter(filter_terms, [genTerm(p, up_vertices_limit)
-                                  for i in range(7000)])) for p in np.arange(0.49, 0.51, 0.02)])
-        print('Generated terms:', len(terms))
+        terms += flatten(
+            [
+                list(
+                    filter(
+                        filter_terms,
+                        [genTerm(p, up_vertices_limit) for i in range(7000)],
+                    )
+                )
+                for p in np.arange(0.49, 0.51, 0.02)
+            ]
+        )
+        print("Generated terms:", len(terms))
         if len(terms) > count_terms:
             break
-    print('LO strategy applying')
-    stepsLO = list(map(lambda term: term.normalize(LeftmostOutermostStrategy())[1], terms))
-    print('Remove unormalized terms')
+    print("LO strategy applying")
+    stepsLO = list(
+        map(lambda term: term.normalize(LeftmostOutermostStrategy())[1], terms)
+    )
+    print("Remove unormalized terms")
     terms_with_normal_form = []
     stepsLO_temp = []
     for i, term in enumerate(terms):
-        if stepsLO[i] != float('inf'):
+        if stepsLO[i] != float("inf"):
             terms_with_normal_form.append(term)
             stepsLO_temp.append(stepsLO[i])
-    print('Left', count_terms, 'normalizeble terms')
+    print("Left", count_terms, "normalizeble terms")
     terms = terms_with_normal_form[:count_terms]
     stepsLO = stepsLO_temp[:count_terms]
 
     return terms, stepsLO
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     terms = gen_lambda_terms(count=100)
     print(len(terms))
     print(terms[0])
 
     from strategy import LeftmostOutermostStrategy
+
     strat = LeftmostOutermostStrategy()
     i = 0
 

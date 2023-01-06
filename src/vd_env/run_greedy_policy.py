@@ -1,6 +1,7 @@
 import random
 import sys
-sys.path.append('../')
+
+sys.path.append("../")
 
 from vd_env.lambda_env import get_simple_env
 from vd_env.greedy_policy import greedy_policy
@@ -27,7 +28,7 @@ def run_greedy_policy(environment, exploration=10, max_term_reward=30):
     return environment, rewards
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # seed = 0
     # random.seed(seed)
 
@@ -38,22 +39,22 @@ if __name__ == '__main__':
     env.render()
 
     plt.plot(rewards_)
-    plt.title('Greedy Policy')
-    plt.xlabel('Trials')
-    plt.ylabel('Reward')
+    plt.title("Greedy Policy")
+    plt.xlabel("Trials")
+    plt.ylabel("Reward")
     plt.show()
 
     cum_rewards = np.cumsum(rewards_)
     plt.plot(cum_rewards)
-    plt.title('Greedy Policy')
-    plt.xlabel('Trials')
-    plt.ylabel('Cum Reward')
+    plt.title("Greedy Policy")
+    plt.xlabel("Trials")
+    plt.ylabel("Cum Reward")
     plt.show()
 
     for i in range(len(cum_rewards)):
         cum_rewards[i] /= i + 1
     plt.plot(cum_rewards)
-    plt.title('Greedy Policy')
-    plt.xlabel('Trials')
-    plt.ylabel('Avg Reward')
+    plt.title("Greedy Policy")
+    plt.xlabel("Trials")
+    plt.ylabel("Avg Reward")
     plt.show()

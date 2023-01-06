@@ -22,7 +22,6 @@ class Var:
 
 
 class Term:
-
     @property
     def isAtom(self):
         """checks whether the term is an atom"""
@@ -68,7 +67,7 @@ class Term:
             return self._body.redexes
         # self is Application
         temp = [self] if self.isBetaRedex else []
-        temp += (self._sub.redexes + self._obj.redexes)
+        temp += self._sub.redexes + self._obj.redexes
         return temp
 
     @property
@@ -84,12 +83,12 @@ class Term:
             of the variables.
         """
         if self.isAtom:
-            return {self._var: {'free': 1, 'bound': 0}}
+            return {self._var: {"free": 1, "bound": 0}}
         if self.isApplication:
             vars, auxvars = dict(self._sub._vars), self._obj._vars
             for var in auxvars:
                 try:
-                    for key in {'free', 'bound'}:
+                    for key in {"free", "bound"}:
                         vars[var][key] += self._obj._vars[var][key]
                 except KeyError:
                     vars[var] = dict(self._obj._vars[var])
@@ -97,8 +96,8 @@ class Term:
         # self is Abstraction
         vars = dict(self._body._vars)
         try:
-            vars[self._head]['bound'] += vars[self._head]['free']
-            vars[self._head]['free'] = 0
+            vars[self._head]["bound"] += vars[self._head]["free"]
+            vars[self._head]["free"] = 0
         except KeyError:
             pass
         return vars
@@ -115,16 +114,16 @@ class Term:
 
     def normalize(self, strategy):
         """
-      :param strategy: OneStepStrategy
-      :return tuple of the normal form of the term and number of steps of betta reduction
-      """
+        :param strategy: OneStepStrategy
+        :return tuple of the normal form of the term and number of steps of betta reduction
+        """
         term = self._updateBoundVariables()
         count = 0
         while term.redexes != []:
             term = term._betaConversion(strategy)
             count += 1
             if term.verticesNumber > 7000 or count > 400:
-                return (self, float('inf'))
+                return (self, float("inf"))
         return (term, count)
 
     def normalize_step(self, strategy):
@@ -151,9 +150,9 @@ class Term:
 
     def _betaConversion(self, strategy):
         """
-      :param strategy: OneStepStrategy
-      :return term with redex eliminated using the given strategy
-      """
+        :param strategy: OneStepStrategy
+        :return term with redex eliminated using the given strategy
+        """
         index = strategy.redexIndex(self)
         subterm = self.subterm(index)
         reducedTerm = subterm._removeOuterRedex()
@@ -161,16 +160,16 @@ class Term:
 
     def subterm(self, index: int):
         """
-      By representing the term as a tree, a subtree is returned, which is also a lambda term.
-      The vertex of this subtree has a given index in the topological sorting of the vertices of the original term.
-      :param index - subterm index
-      :return: subterm: Term
-      """
+        By representing the term as a tree, a subtree is returned, which is also a lambda term.
+        The vertex of this subtree has a given index in the topological sorting of the vertices of the original term.
+        :param index - subterm index
+        :return: subterm: Term
+        """
         if index == 1:
             return self
 
         if self.isAtom:
-            ValueError('index value is incorrect')
+            ValueError("index value is incorrect")
         elif self.isApplication:
             if self._sub.verticesNumber + 1 >= index:
                 return self._sub.subterm(index - 1)
@@ -181,22 +180,25 @@ class Term:
 
     def setSubterm(self, index: int, term):
         """
-      By representing the term as a tree, a subtree is set, which is also a lambda term.
-      The vertex of this subtree has a given index in the topological sorting of the vertices of the original term.
-      :param index - subterm index
-      :param term - λ-term to which the subterm will be replaced
-      :return: updated λ-term
-      """
+        By representing the term as a tree, a subtree is set, which is also a lambda term.
+        The vertex of this subtree has a given index in the topological sorting of the vertices of the original term.
+        :param index - subterm index
+        :param term - λ-term to which the subterm will be replaced
+        :return: updated λ-term
+        """
         if index == 1:
             return term
 
         if self.isAtom:
-            ValueError('index value is incorrect')
+            ValueError("index value is incorrect")
         elif self.isApplication:
             if self._sub.verticesNumber + 1 >= index:
                 return Application(self._sub.setSubterm(index - 1, term), self._obj)
             else:
-                return Application(self._sub, self._obj.setSubterm(index - self._sub.verticesNumber - 1, term))
+                return Application(
+                    self._sub,
+                    self._obj.setSubterm(index - self._sub.verticesNumber - 1, term),
+                )
         else:  # self is Abstraction
             return Abstraction(self._head, self._body.setSubterm(index - 1, term))
 
@@ -205,10 +207,17 @@ class Term:
         if self.isAtom:
             return self
         elif self.isApplication:
-            return Application(self._sub._updateBoundVariables(), self._obj._updateBoundVariables())
+            return Application(
+                self._sub._updateBoundVariables(), self._obj._updateBoundVariables()
+            )
         else:  # self is Abstraction
             newVar = Var()
-            return Abstraction(newVar, self._body._replaceVariable(self._head, Atom(newVar))._updateBoundVariables())
+            return Abstraction(
+                newVar,
+                self._body._replaceVariable(
+                    self._head, Atom(newVar)
+                )._updateBoundVariables(),
+            )
 
     def _removeOuterRedex(self):
         """apply the betta conversion to the lambda term, removing the outer betta redex"""
@@ -224,7 +233,10 @@ class Term:
         if self.isAtom:
             return term if self._var == var else self
         elif self.isApplication:
-            return Application(self._sub._replaceVariable(var, term), self._obj._replaceVariable(var, term))
+            return Application(
+                self._sub._replaceVariable(var, term),
+                self._obj._replaceVariable(var, term),
+            )
         else:  # self is Abstraction
             return Abstraction(self._head, self._body._replaceVariable(var, term))
 
