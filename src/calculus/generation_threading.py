@@ -1,4 +1,4 @@
-import threading
+from threading import Thread
 from calculus.generation import *
 
 
@@ -87,18 +87,14 @@ class GenTermsThreadV2(Thread):
         print(f"Thread {self.thread_name} is DONE Random norm")
         print(f"Thread {self.thread_name} is DONE")
 
+    def get_terms(self):
+        return self.gen_terms
 
-def get_terms(self):
-    return self.gen_terms
+    def get_stepsLO(self):
+        return self.gen_stepsLO
 
+    def get_stepsRI(self):
+        return self.gen_stepsRI
 
-def get_stepsLO(self):
-    return self.gen_stepsLO
-
-
-def get_stepsRI(self):
-    return self.gen_stepsRI
-
-
-def get_stepsRand(self):
-    return self.gen_stepsRand
+    def get_stepsRand(self):
+        return self.gen_stepsRand
