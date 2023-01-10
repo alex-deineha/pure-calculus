@@ -1,7 +1,6 @@
 from random import random
 from tqdm import tqdm
 import numpy as np
-from threading import Thread
 
 from calculus.strategy import *
 from calculus.term import Atom, Var, Abstraction, Application
@@ -91,62 +90,20 @@ def gen_filtered_lambda_terms(
     return terms, stepsLO
 
 
-class GenTermsThread(Thread):
-    def __init__(self, count_terms=100, down_vertices_limit=50, up_vertices_limit=60,
-                 random_average_count=20, thread_name=""):
-        super().__init__()
-        self.unfiltered_terms = gen_lambda_terms(count=count_terms, down_vertices_limit=down_vertices_limit,
-                                                 up_vertices_limit=up_vertices_limit)
-        self.gen_terms = []
-        self.gen_stepsLO = []
-        self.gen_stepsRI = []
-        self.gen_stepsRand = []
-        self.count_terms = count_terms
-        self.down_vertices_limit = down_vertices_limit
-        self.up_vertices_limit = up_vertices_limit
-        self.random_average_count = random_average_count
-        self.thread_name = thread_name
-        self.mode = "all"
+def gen_filtered_lambda_terms_v2(count_terms=100, down_vertices_limit=50, up_vertices_limit=60):
+    terms = []
+    stepsLO = []
+    while len(terms) < count_terms:
+        unfiltered_terms = gen_lambda_terms(count=1, up_vertices_limit=up_vertices_limit,
+                                            down_vertices_limit=down_vertices_limit,
+                                            gen_const=40, return_exact=False)
+        for term in unfiltered_terms:
+            _, steps = term.normalize(LeftmostOutermostStrategy())
+            if steps != float("inf"):
+                terms.append(term)
+                stepsLO.append(steps)
 
-    def set_mode(self, mode):
-        self.mode = mode
-
-    def run(self):
-        print(f"Running thread: {self.thread_name}")
-        if self.mode in ["all", "gen"]:
-            self.gen_terms, self.gen_stepsLO = \
-                gen_filtered_lambda_terms(count_terms=self.count_terms,
-                                          down_vertices_limit=self.down_vertices_limit,
-                                          up_vertices_limit=self.up_vertices_limit,
-                                          terms=self.unfiltered_terms)
-            print(f"Thread {self.thread_name} is generated and filtered terms")
-
-        if self.mode in ["all", "RI"]:
-            print(f"Thread {self.thread_name} is doing RI norm")
-            self.gen_stepsRI = [term.normalize(RightmostInnermostStrategy())[1] for term in tqdm(self.gen_terms)]
-            print(f"Thread {self.thread_name} is DONE RI norm")
-
-        if self.mode in ["all", "Rand"]:
-            print(f"Thread {self.thread_name} is doing Random norm")
-            self.gen_stepsRand = [
-                sum([term.normalize(RandomStrategy())[1] for i in range(self.random_average_count)])
-                / self.random_average_count
-                for term in tqdm(self.gen_terms)
-            ]
-            print(f"Thread {self.thread_name} is DONE Random norm")
-        print(f"Thread {self.thread_name} is DONE")
-
-    def get_terms(self):
-        return self.gen_terms
-
-    def get_stepsLO(self):
-        return self.gen_stepsLO
-
-    def get_stepsRI(self):
-        return self.gen_stepsRI
-
-    def get_stepsRand(self):
-        return self.gen_stepsRand
+    return terms, stepsLO
 
 
 def test_run():
