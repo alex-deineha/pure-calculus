@@ -60,30 +60,14 @@ def gen_lambda_terms(count=100, down_vertices_limit=50, up_vertices_limit=60):
 
 
 def gen_filtered_lambda_terms(
-    count_terms=100, down_vertices_limit=50, up_vertices_limit=60
+        count_terms=100, down_vertices_limit=50, up_vertices_limit=60,
+        terms=None
 ):
-    def filter_terms(term):
-        return term and down_vertices_limit < term.verticesNumber < up_vertices_limit
-
-    def flatten(t):
-        return [item for sublist in t for item in sublist]
-
-    terms = []
-    while True:
-        terms += flatten(
-            [
-                list(
-                    filter(
-                        filter_terms,
-                        [genTerm(p, up_vertices_limit) for i in range(7000)],
-                    )
-                )
-                for p in np.arange(0.49, 0.51, 0.02)
-            ]
-        )
+    if terms is None:
+        terms = gen_lambda_terms(count=count_terms, down_vertices_limit=down_vertices_limit,
+                                 up_vertices_limit=up_vertices_limit)
         print("Generated terms:", len(terms))
-        if len(terms) > count_terms:
-            break
+
     print("LO strategy applying")
     stepsLO = list(
         map(lambda term: term.normalize(LeftmostOutermostStrategy())[1], terms)
