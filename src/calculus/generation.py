@@ -33,7 +33,8 @@ def genTerm(p: float, uplimit: int, vars: List[Var] = [], trigger_by_application
             return None
 
 
-def gen_lambda_terms(count=100, down_vertices_limit=50, up_vertices_limit=60):
+def gen_lambda_terms(count=100, down_vertices_limit=50, up_vertices_limit=60,
+                     gen_const=7_000, return_exact=True):
     def filter_terms(term):
         return term and down_vertices_limit < term.verticesNumber < up_vertices_limit
 
@@ -47,7 +48,7 @@ def gen_lambda_terms(count=100, down_vertices_limit=50, up_vertices_limit=60):
                 list(
                     filter(
                         filter_terms,
-                        [genTerm(p, up_vertices_limit) for i in range(7000)],
+                        [genTerm(p, up_vertices_limit) for i in range(gen_const)],
                     )
                 )
                 for p in np.arange(0.49, 0.51, 0.02)
@@ -56,7 +57,8 @@ def gen_lambda_terms(count=100, down_vertices_limit=50, up_vertices_limit=60):
         if len(terms) > count:
             break
 
-    terms = terms[:count]
+    if return_exact:
+        return terms[:count]
     return terms
 
 
@@ -65,7 +67,8 @@ def gen_filtered_lambda_terms(
         terms=None
 ):
     if terms is None:
-        terms = gen_lambda_terms(count=count_terms, down_vertices_limit=down_vertices_limit,
+        # because at least 30% terms will filter out so increase gen count
+        terms = gen_lambda_terms(count=int(count_terms * 1.3), down_vertices_limit=down_vertices_limit,
                                  up_vertices_limit=up_vertices_limit)
         print("Generated terms:", len(terms))
 
@@ -81,6 +84,7 @@ def gen_filtered_lambda_terms(
             terms_with_normal_form.append(term)
             stepsLO_temp.append(stepsLO[i])
     print("Left", count_terms, "normalizeble terms")
+    print(f"Gen terms with normal form: {len(terms_with_normal_form)}")
     terms = terms_with_normal_form[:count_terms]
     stepsLO = stepsLO_temp[:count_terms]
 
