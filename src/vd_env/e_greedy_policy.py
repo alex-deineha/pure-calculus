@@ -65,6 +65,7 @@ def e_greedy_action_based_policy(
         probab = avg_rewards / np.sum(avg_rewards)
         probab = 1.0 - probab
         probab = probab / np.sum(probab)
+        env.add_weights(probab)
         best_strategy = np.random.choice(np.arange(count_strategies), p=probab)
 
     return best_strategy

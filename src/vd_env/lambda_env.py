@@ -19,6 +19,7 @@ class LambdaEnv(gym.Env):
         self._max_step_term = max_step_term
         self._count_terms = count_terms
         self.strategies = strategies
+        self.weights_history = []
         if lambda_terms is None:
             self.reset()
         else:
@@ -69,6 +70,7 @@ class LambdaEnv(gym.Env):
         return self.term_idx
 
     def reset_(self, lambda_terms):
+        self.weights_history = []
         self.term_idx = 0
         if lambda_terms is None:
             self.lambda_terms = gen_lambda_terms(count=self._count_terms)
@@ -84,6 +86,7 @@ class LambdaEnv(gym.Env):
         return self.reset_(None)
 
     def reset_soft(self):
+        self.weights_history = []
         self.term_idx = 0
         self.state = {}
         for i in range(self._count_terms):
@@ -97,6 +100,12 @@ class LambdaEnv(gym.Env):
                 [row[1] for row in self.state[i]]
             )
             print("Term No_{}: total reward:{}".format(i, total_term_reward))
+
+    def add_weights(self, weights):
+        self.weights_history.append(weights)
+
+    def get_weights_history(self):
+        return self.weights_history
 
 
 def get_simple_env(max_step_term=500, count_terms=100):
