@@ -62,7 +62,7 @@ class GenTermsThread(Thread):
 
 class GenTermsThreadV2(Thread):
     def __init__(self, count_terms=100,
-                 random_average_count=20, thread_name=""):
+                 random_average_count=20, thread_name="", mode="all"):
         super().__init__()
         self.gen_terms, self.gen_stepsLO = gen_filtered_lambda_terms_v2(count_terms)
         self.gen_stepsRI = []
@@ -70,21 +70,25 @@ class GenTermsThreadV2(Thread):
         self.random_average_count = random_average_count
         self.thread_name = thread_name
         print(f"Th_{self.thread_name}: generated {len(self.gen_terms)} terms")
+        self.mode = mode
 
     def run(self):
         print(f"Running thread: {self.thread_name}")
-        print(f"Thread {self.thread_name} is doing RI norm")
-        self.gen_stepsRI = [term.normalize(RightmostInnermostStrategy())[1] for term in tqdm(self.gen_terms)]
 
-        print(f"Thread {self.thread_name} is DONE RI norm")
-        print(f"Thread {self.thread_name} is doing Random norm")
-        self.gen_stepsRand = [
-            sum([term.normalize(RandomStrategy())[1] for i in range(self.random_average_count)])
-            / self.random_average_count
-            for term in tqdm(self.gen_terms)
-        ]
+        if self.mode in ["all", "RI"]:
+            print(f"Thread {self.thread_name} is doing RI norm")
+            self.gen_stepsRI = [term.normalize(RightmostInnermostStrategy())[1] for term in tqdm(self.gen_terms)]
+            print(f"Thread {self.thread_name} is DONE RI norm")
 
-        print(f"Thread {self.thread_name} is DONE Random norm")
+        if self.mode in ["all", "Rand"]:
+            print(f"Thread {self.thread_name} is doing Random norm")
+            self.gen_stepsRand = [
+                sum([term.normalize(RandomStrategy())[1] for i in range(self.random_average_count)])
+                / self.random_average_count
+                for term in tqdm(self.gen_terms)
+            ]
+            print(f"Thread {self.thread_name} is DONE Random norm")
+
         print(f"Thread {self.thread_name} is DONE")
 
     def get_terms(self):
