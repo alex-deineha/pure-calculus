@@ -90,7 +90,8 @@ def gen_filtered_lambda_terms(
     return terms, stepsLO
 
 
-def gen_filtered_lambda_terms_v2(count_terms=100, down_vertices_limit=50, up_vertices_limit=60):
+def gen_filtered_lambda_terms_v2(count_terms=100, down_vertices_limit=50, up_vertices_limit=60,
+                                 filtering_strategy=LeftmostOutermostStrategy()):
     terms = []
     stepsLO = []
     while len(terms) < count_terms:
@@ -98,7 +99,7 @@ def gen_filtered_lambda_terms_v2(count_terms=100, down_vertices_limit=50, up_ver
                                             down_vertices_limit=down_vertices_limit,
                                             gen_const=40, return_exact=False)
         for term in unfiltered_terms:
-            _, steps = term.normalize(LeftmostOutermostStrategy())
+            _, steps = term.normalize(filtering_strategy)
             if steps != float("inf"):
                 terms.append(term)
                 stepsLO.append(steps)
