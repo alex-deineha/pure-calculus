@@ -126,6 +126,18 @@ class Term:
                 return (self, float("inf"))
         return (term, count)
 
+    def normalize_no_lim(self, strategy):
+        """
+                :param strategy: OneStepStrategy
+                :return tuple of the normal form of the term and number of steps of betta reduction
+                """
+        term = self._updateBoundVariables()
+        count = 0
+        while term.redexes != []:
+            term = term._betaConversion(strategy)
+            count += 1
+        return term, count
+
     def normalize_step(self, strategy):
         """
         :param strategy: OneStepStrategy
