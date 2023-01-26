@@ -1,3 +1,6 @@
+DEF_VAR_NAMES = "qwertyuiopasdfghjklzxcvbnm"
+
+
 def natgen():
     n = 0
     while True:
@@ -44,6 +47,31 @@ class Term:
             return "(" + str(self._sub) + " " + str(self._obj) + ")"
         # self is Abbstraction
         return "(fun " + str(self._head) + " => " + str(self._body) + ")"
+
+    def _get_list_variables(self):
+        if self.isAtom:
+            return [self._var._idx]
+        if self.isApplication:
+            return self._sub._get_list_variables() + self._obj._get_list_variables()
+        return [self._head._idx] + self._body._get_list_variables()
+
+    def _get_var_pseudonyms(self):
+        unique_vars_inx = set(self._get_list_variables())
+        pseudonyms = dict()
+        for inx, uvi in enumerate(unique_vars_inx):
+            pseudonyms[uvi] = DEF_VAR_NAMES[inx] if inx < len(DEF_VAR_NAMES) \
+                else DEF_VAR_NAMES[inx % len(DEF_VAR_NAMES)] + "_" + str(int(inx / len(DEF_VAR_NAMES)))
+
+        return pseudonyms
+
+    def funky_str(self, pseudonyms: dict = None):
+        if pseudonyms is None:
+            pseudonyms = self._get_var_pseudonyms()
+        if self.isAtom:
+            return pseudonyms[self._var._idx]
+        if self.isApplication:
+            return f"({self._sub.funky_str(pseudonyms)} {self._obj.funky_str(pseudonyms)})"
+        return f"λ{pseudonyms[self._head._idx]}.{self._body.funky_str(pseudonyms)}"
 
     def __eq__(self, other):
         if self.isAtom and other.isAtom:
