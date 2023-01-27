@@ -41,12 +41,15 @@ class Term:
         return isinstance(self, Abstraction)
 
     def __str__(self):
+        return self.funky_str()
+
+    def str_debug(self):
         if self.isAtom:
-            return str(self._var)
+            return f"v[{self._var._idx}]"
         if self.isApplication:
-            return "(" + str(self._sub) + " " + str(self._obj) + ")"
+            return f"({self._sub.str_debug()} {self._obj.str_debug()})"
         # self is Abbstraction
-        return "(fun " + str(self._head) + " => " + str(self._body) + ")"
+        return f"(fun v[{self._head._idx}] => {self._body.str_debug()}"
 
     def _get_list_variables(self):
         if self.isAtom:
