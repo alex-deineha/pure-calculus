@@ -62,8 +62,13 @@ class Term:
         unique_vars_inx = set(self._get_list_variables())
         pseudonyms = dict()
         for inx, uvi in enumerate(unique_vars_inx):
-            pseudonyms[uvi] = DEF_VAR_NAMES[inx] if inx < len(DEF_VAR_NAMES) \
-                else DEF_VAR_NAMES[inx % len(DEF_VAR_NAMES)] + "_" + str(int(inx / len(DEF_VAR_NAMES)))
+            pseudonyms[uvi] = (
+                DEF_VAR_NAMES[inx]
+                if inx < len(DEF_VAR_NAMES)
+                else DEF_VAR_NAMES[inx % len(DEF_VAR_NAMES)]
+                + "_"
+                + str(int(inx / len(DEF_VAR_NAMES)))
+            )
 
         return pseudonyms
 
@@ -73,7 +78,9 @@ class Term:
         if self.isAtom:
             return pseudonyms[self._var._idx]
         if self.isApplication:
-            return f"({self._sub.funky_str(pseudonyms)} {self._obj.funky_str(pseudonyms)})"
+            return (
+                f"({self._sub.funky_str(pseudonyms)} {self._obj.funky_str(pseudonyms)})"
+            )
         return f"λ{pseudonyms[self._head._idx]}.{self._body.funky_str(pseudonyms)}"
 
     def __eq__(self, other):
@@ -159,9 +166,9 @@ class Term:
 
     def normalize_no_lim(self, strategy):
         """
-                :param strategy: OneStepStrategy
-                :return tuple of the normal form of the term and number of steps of betta reduction
-                """
+        :param strategy: OneStepStrategy
+        :return tuple of the normal form of the term and number of steps of betta reduction
+        """
         term = self._updateBoundVariables()
         count = 0
         while term.redexes != []:

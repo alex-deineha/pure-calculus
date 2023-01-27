@@ -40,10 +40,12 @@ def s_term():
 def y_term():
     x, f = Var(), Var()
     x_, f_ = Atom(x), Atom(f)
-    return Lambda(f, App(
-        Lambda(x, multi_app_term(f_, x_, x_)),
-        Lambda(x, multi_app_term(f_, x_, x_))
-    ))
+    return Lambda(
+        f,
+        App(
+            Lambda(x, multi_app_term(f_, x_, x_)), Lambda(x, multi_app_term(f_, x_, x_))
+        ),
+    )
 
 
 # BLOCK OF LOGIC
@@ -135,41 +137,56 @@ def second_term():
 def sinc_term():
     p = Var()
     p_ = Atom(p)
-    return Lambda(p, multi_app_term(
-        pair_term(),
-        App(second_term(), p_),
-        App(succ_term(), App(second_term(), p_))
-    ))
+    return Lambda(
+        p,
+        multi_app_term(
+            pair_term(),
+            App(second_term(), p_),
+            App(succ_term(), App(second_term(), p_)),
+        ),
+    )
 
 
 def fsinc_term():
     p, z = Var(), Var()
     p_, z_ = Atom(p), Atom(z)
-    return Lambda(p, Lambda(z, multi_app_term(
-        z_,
-        App(succ_term(), App(p_, true_term())),
-        App(p_, true_term())
-    )))
+    return Lambda(
+        p,
+        Lambda(
+            z,
+            multi_app_term(
+                z_, App(succ_term(), App(p_, true_term())), App(p_, true_term())
+            ),
+        ),
+    )
 
 
 def fpred_term():
     n, z = Var(), Var()
     n_, z_ = Atom(n), Atom(z)
-    return Lambda(n,multi_app_term(
-        n_,
-        fsinc_term(),
-        Lambda(z, multi_app_term(z_, n0_term(), n0_term())),
-        false_term()
-    ))
+    return Lambda(
+        n,
+        multi_app_term(
+            n_,
+            fsinc_term(),
+            Lambda(z, multi_app_term(z_, n0_term(), n0_term())),
+            false_term(),
+        ),
+    )
 
 
 def pred_term():
     n = Var()
     n_ = Atom(n)
-    return Lambda(n, App(
-        first_term(),
-        multi_app_term(n_, sinc_term(), multi_app_term(pair_term(), n0_term(), n0_term()))
-    ))
+    return Lambda(
+        n,
+        App(
+            first_term(),
+            multi_app_term(
+                n_, sinc_term(), multi_app_term(pair_term(), n0_term(), n0_term())
+            ),
+        ),
+    )
 
 
 def substr_term():
@@ -181,19 +198,25 @@ def substr_term():
 def le_term():
     n, m = Var(), Var()
     n_, m_ = Atom(n), Atom(m)
-    return Lambda(n, Lambda(m, App(iszero_term(), multi_app_term(
-        substr_term(), n_, m_
-    ))))
+    return Lambda(
+        n, Lambda(m, App(iszero_term(), multi_app_term(substr_term(), n_, m_)))
+    )
 
 
 def eq_term():
     n, m = Var(), Var()
     n_, m_ = Atom(n), Atom(m)
-    return Lambda(n, Lambda(m, multi_app_term(
-        and_term(),
-        multi_app_term(le_term(), n_, m_),
-        multi_app_term(le_term(), n_, m_)
-    )))
+    return Lambda(
+        n,
+        Lambda(
+            m,
+            multi_app_term(
+                and_term(),
+                multi_app_term(le_term(), n_, m_),
+                multi_app_term(le_term(), n_, m_),
+            ),
+        ),
+    )
 
 
 def gcd_term():

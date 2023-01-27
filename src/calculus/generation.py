@@ -32,8 +32,13 @@ def genTerm(p: float, uplimit: int, vars: List[Var] = [], trigger_by_application
             return None
 
 
-def gen_lambda_terms(count=100, down_vertices_limit=50, up_vertices_limit=60,
-                     gen_const=7_000, return_exact=True):
+def gen_lambda_terms(
+    count=100,
+    down_vertices_limit=50,
+    up_vertices_limit=60,
+    gen_const=7_000,
+    return_exact=True,
+):
     def filter_terms(term):
         return term and down_vertices_limit < term.verticesNumber < up_vertices_limit
 
@@ -62,13 +67,15 @@ def gen_lambda_terms(count=100, down_vertices_limit=50, up_vertices_limit=60,
 
 
 def gen_filtered_lambda_terms(
-        count_terms=100, down_vertices_limit=50, up_vertices_limit=60,
-        terms=None
+    count_terms=100, down_vertices_limit=50, up_vertices_limit=60, terms=None
 ):
     if terms is None:
         # because at least 30% terms will filter out so increase gen count
-        terms = gen_lambda_terms(count=int(count_terms * 1.3), down_vertices_limit=down_vertices_limit,
-                                 up_vertices_limit=up_vertices_limit)
+        terms = gen_lambda_terms(
+            count=int(count_terms * 1.3),
+            down_vertices_limit=down_vertices_limit,
+            up_vertices_limit=up_vertices_limit,
+        )
         print("Generated terms:", len(terms))
 
     print("LO strategy applying")
@@ -90,14 +97,22 @@ def gen_filtered_lambda_terms(
     return terms, stepsLO
 
 
-def gen_filtered_lambda_terms_v2(count_terms=100, down_vertices_limit=50, up_vertices_limit=60,
-                                 filtering_strategy=LeftmostOutermostStrategy()):
+def gen_filtered_lambda_terms_v2(
+    count_terms=100,
+    down_vertices_limit=50,
+    up_vertices_limit=60,
+    filtering_strategy=LeftmostOutermostStrategy(),
+):
     terms = []
     stepsLO = []
     while len(terms) < count_terms:
-        unfiltered_terms = gen_lambda_terms(count=1, up_vertices_limit=up_vertices_limit,
-                                            down_vertices_limit=down_vertices_limit,
-                                            gen_const=40, return_exact=False)
+        unfiltered_terms = gen_lambda_terms(
+            count=1,
+            up_vertices_limit=up_vertices_limit,
+            down_vertices_limit=down_vertices_limit,
+            gen_const=40,
+            return_exact=False,
+        )
         for term in unfiltered_terms:
             _, steps = term.normalize(filtering_strategy)
             if steps != float("inf"):

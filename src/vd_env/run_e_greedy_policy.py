@@ -9,13 +9,13 @@ import numpy as np
 
 
 def run_e_greedy_policy(
-        environment,
-        exploration=10,
-        max_term_reward=30,
-        epsilon=0.1,
-        deterministic=True,
-        is_action_based=False,
-        return_steps=False
+    environment,
+    exploration=10,
+    max_term_reward=30,
+    epsilon=0.1,
+    deterministic=True,
+    is_action_based=False,
+    return_steps=False,
 ):
     state = environment.reset_soft()
 
@@ -48,7 +48,10 @@ def run_e_greedy_policy(
     if return_steps:
         steps = [(len(term_history) - 1) for term_history in state.values()]
     else:
-        rewards = [(max_term_reward - (len(term_history) - 1)) for term_history in state.values()]
+        rewards = [
+            (max_term_reward - (len(term_history) - 1))
+            for term_history in state.values()
+        ]
 
     # environment.close()
     return environment, steps if return_steps else rewards

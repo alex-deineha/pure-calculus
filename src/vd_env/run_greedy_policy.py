@@ -9,7 +9,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-def run_greedy_policy(environment, exploration=10, max_term_reward=30, return_steps=False):
+def run_greedy_policy(
+    environment, exploration=10, max_term_reward=30, return_steps=False
+):
     state = environment.reset_soft()
 
     while environment.is_has_next_term():
@@ -24,7 +26,10 @@ def run_greedy_policy(environment, exploration=10, max_term_reward=30, return_st
     if return_steps:
         steps = [(len(term_history) - 1) for term_history in state.values()]
     else:
-        rewards = [(max_term_reward - (len(term_history) - 1)) for term_history in state.values()]
+        rewards = [
+            (max_term_reward - (len(term_history) - 1))
+            for term_history in state.values()
+        ]
 
     # environment.close()
     return environment, steps if return_steps else rewards

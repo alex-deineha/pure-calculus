@@ -55,10 +55,9 @@ def draw_cumulative_avg_comparison(
     draw_mult_lines(comp_data, title=title, x_label=x_label, y_label=y_label)
 
 
-def draw_mult_lines(comp_data: dict,
-                    title="title",
-                    x_label="x_label",
-                    y_label="y_label"):
+def draw_mult_lines(
+    comp_data: dict, title="title", x_label="x_label", y_label="y_label"
+):
     for key in comp_data.keys():
         cum_reward = np.cumsum(comp_data[key][0])
         cum_reward = [cum_reward[i] / (i + 1) for i in range(len(cum_reward))]

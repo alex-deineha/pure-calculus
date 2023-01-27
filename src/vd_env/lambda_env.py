@@ -10,9 +10,14 @@ from calculus.strategy import LeftmostOutermostStrategy, RightmostInnermostStrat
 
 
 class LambdaEnv(gym.Env):
-    def __init__(self, strategies, lambda_terms=None,
-                 max_step_term=500, count_terms=100,
-                 reward_values=(-1, 0)):
+    def __init__(
+        self,
+        strategies,
+        lambda_terms=None,
+        max_step_term=500,
+        count_terms=100,
+        reward_values=(-1, 0),
+    ):
         """
         :param reward_values: turtle len of 2, were rew...[0] - reward value for the step,
                     rew...[1] - reward value for the successful step. Default (-1, 0)
@@ -39,7 +44,9 @@ class LambdaEnv(gym.Env):
         is_done_norm = self.lambda_terms[self.term_idx].normalize_step(
             selected_strategy
         )
-        self.state[self.term_idx].append([action, self.reward_values[0] if is_done_norm else self.reward_values[1]])
+        self.state[self.term_idx].append(
+            [action, self.reward_values[0] if is_done_norm else self.reward_values[1]]
+        )
 
         # check is it possible to normalize the term more
         # by calculating total reward
