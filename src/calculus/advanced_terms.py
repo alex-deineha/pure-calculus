@@ -175,6 +175,12 @@ def fpred_term():
     )
 
 
+def fsubstr_term():
+    n, m = Var(), Var()
+    n_, m_ = Atom(n), Atom(m)
+    return Lambda(n, Lambda(m, multi_app_term(m_, fpred_term(), n_)))
+
+
 def pred_term():
     n = Var()
     n_ = Atom(n)
