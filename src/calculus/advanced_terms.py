@@ -219,7 +219,7 @@ def eq_term():
             multi_app_term(
                 and_term(),
                 multi_app_term(le_term(), n_, m_),
-                multi_app_term(le_term(), n_, m_),
+                multi_app_term(le_term(), m_, n_),
             ),
         ),
     )
