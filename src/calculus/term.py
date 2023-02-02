@@ -159,6 +159,7 @@ class Term:
         count = 0
         while term.redexes != []:
             term = term._betaConversion(strategy)
+            term = term._updateBoundVariables()
             count += 1
             if term.verticesNumber > 7000 or count > 400:
                 return (self, float("inf"))
@@ -173,6 +174,7 @@ class Term:
         count = 0
         while term.redexes != []:
             term = term._betaConversion(strategy)
+            term = term._updateBoundVariables()
             count += 1
         return term, count
 
@@ -188,7 +190,7 @@ class Term:
         if self.normalization_term.redexes != []:
             if self.normalization_term.verticesNumber > 7000:
                 return True
-            self.normalization_term = self.normalization_term._betaConversion(strategy)
+            self.normalization_term = self.normalization_term._betaConversion(strategy)._updateBoundVariables()
             return True
         return False
 
