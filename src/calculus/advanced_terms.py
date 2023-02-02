@@ -38,14 +38,12 @@ def s_term():
 
 # BLOCK OF FIXED-POINT COMBINATORS
 def y_term():
-    x, f = Var(), Var()
-    x_, f_ = Atom(x), Atom(f)
-    return Lambda(
-        f,
-        App(
-            Lambda(x, multi_app_term(f_, x_, x_)), Lambda(x, multi_app_term(f_, x_, x_))
-        ),
-    )
+    g, x = Var(), Var()
+    g_, x_ = Atom(g), Atom(x)
+    return Lambda(g, App(
+        Lambda(x, App(g_, App(x_, x_))),
+        Lambda(x, App(g_, App(x_, x_)))
+    ))
 
 
 # BLOCK OF LOGIC
