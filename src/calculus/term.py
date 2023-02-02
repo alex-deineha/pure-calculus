@@ -66,8 +66,8 @@ class Term:
                 DEF_VAR_NAMES[inx]
                 if inx < len(DEF_VAR_NAMES)
                 else DEF_VAR_NAMES[inx % len(DEF_VAR_NAMES)]
-                + "_"
-                + str(int(inx / len(DEF_VAR_NAMES)))
+                     + "_"
+                     + str(int(inx / len(DEF_VAR_NAMES)))
             )
 
         return pseudonyms
@@ -81,7 +81,7 @@ class Term:
             return (
                 f"({self._sub.funky_str(pseudonyms)} {self._obj.funky_str(pseudonyms)})"
             )
-        return f"λ{pseudonyms[self._head._idx]}.{self._body.funky_str(pseudonyms)}"
+        return f"(λ{pseudonyms[self._head._idx]}.{self._body.funky_str(pseudonyms)})"
 
     def __eq__(self, other):
         if self.isAtom and other.isAtom:
