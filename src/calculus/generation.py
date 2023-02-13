@@ -102,6 +102,7 @@ def gen_filtered_lambda_terms_v2(
     down_vertices_limit=50,
     up_vertices_limit=60,
     filtering_strategy=LeftmostOutermostStrategy(),
+    update_bound_vars=True,
 ):
     terms = []
     stepsLO = []
@@ -114,7 +115,7 @@ def gen_filtered_lambda_terms_v2(
             return_exact=False,
         )
         for term in unfiltered_terms:
-            _, steps = term.normalize(filtering_strategy)
+            _, steps = term.normalize(filtering_strategy, update_bound_vars)
             if steps != float("inf"):
                 terms.append(term)
                 stepsLO.append(steps)

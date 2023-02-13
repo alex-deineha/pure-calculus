@@ -150,16 +150,18 @@ class Term:
         else:  # self is Abstraction
             return 1 + self._body.verticesNumber
 
-    def normalize(self, strategy):
+    def normalize(self, strategy, update_bound_vars=True):
         """
         :param strategy: OneStepStrategy
+        :param update_bound_vars:
         :return tuple of the normal form of the term and number of steps of betta reduction
         """
         term = self._updateBoundVariables()
         count = 0
         while term.redexes != []:
             term = term._betaConversion(strategy)
-            term = term._updateBoundVariables()
+            if update_bound_vars:
+                term = term._updateBoundVariables()
             count += 1
             if term.verticesNumber > 7000 or count > 400:
                 return (self, float("inf"))
