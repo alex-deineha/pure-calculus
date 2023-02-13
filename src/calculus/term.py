@@ -1,3 +1,6 @@
+DEF_VAR_NAMES = "qwertyuiopasdfghjklzxcvbnm"
+
+
 def natgen():
     n = 0
     while True:
@@ -22,7 +25,6 @@ class Var:
 
 
 class Term:
-
     @property
     def isAtom(self):
         """checks whether the term is an atom"""
@@ -39,12 +41,47 @@ class Term:
         return isinstance(self, Abstraction)
 
     def __str__(self):
+        return self.funky_str()
+
+    def str_debug(self):
         if self.isAtom:
-            return str(self._var)
+            return f"v[{self._var._idx}]"
         if self.isApplication:
-            return "(" + str(self._sub) + " " + str(self._obj) + ")"
+            return f"({self._sub.str_debug()} {self._obj.str_debug()})"
         # self is Abbstraction
-        return "(fun " + str(self._head) + " => " + str(self._body) + ")"
+        return f"(fun v[{self._head._idx}] => {self._body.str_debug()}"
+
+    def _get_list_variables(self):
+        if self.isAtom:
+            return [self._var._idx]
+        if self.isApplication:
+            return self._sub._get_list_variables() + self._obj._get_list_variables()
+        return [self._head._idx] + self._body._get_list_variables()
+
+    def _get_var_pseudonyms(self):
+        unique_vars_inx = set(self._get_list_variables())
+        pseudonyms = dict()
+        for inx, uvi in enumerate(unique_vars_inx):
+            pseudonyms[uvi] = (
+                DEF_VAR_NAMES[inx]
+                if inx < len(DEF_VAR_NAMES)
+                else DEF_VAR_NAMES[inx % len(DEF_VAR_NAMES)]
+                     + "_"
+                     + str(int(inx / len(DEF_VAR_NAMES)))
+            )
+
+        return pseudonyms
+
+    def funky_str(self, pseudonyms: dict = None):
+        if pseudonyms is None:
+            pseudonyms = self._get_var_pseudonyms()
+        if self.isAtom:
+            return pseudonyms[self._var._idx]
+        if self.isApplication:
+            return (
+                f"({self._sub.funky_str(pseudonyms)} {self._obj.funky_str(pseudonyms)})"
+            )
+        return f"(λ{pseudonyms[self._head._idx]}.{self._body.funky_str(pseudonyms)})"
 
     def __eq__(self, other):
         if self.isAtom and other.isAtom:
@@ -68,7 +105,7 @@ class Term:
             return self._body.redexes
         # self is Application
         temp = [self] if self.isBetaRedex else []
-        temp += (self._sub.redexes + self._obj.redexes)
+        temp += self._sub.redexes + self._obj.redexes
         return temp
 
     @property
@@ -84,12 +121,12 @@ class Term:
             of the variables.
         """
         if self.isAtom:
-            return {self._var: {'free': 1, 'bound': 0}}
+            return {self._var: {"free": 1, "bound": 0}}
         if self.isApplication:
             vars, auxvars = dict(self._sub._vars), self._obj._vars
             for var in auxvars:
                 try:
-                    for key in {'free', 'bound'}:
+                    for key in {"free", "bound"}:
                         vars[var][key] += self._obj._vars[var][key]
                 except KeyError:
                     vars[var] = dict(self._obj._vars[var])
@@ -97,8 +134,8 @@ class Term:
         # self is Abstraction
         vars = dict(self._body._vars)
         try:
-            vars[self._head]['bound'] += vars[self._head]['free']
-            vars[self._head]['free'] = 0
+            vars[self._head]["bound"] += vars[self._head]["free"]
+            vars[self._head]["free"] = 0
         except KeyError:
             pass
         return vars
@@ -113,25 +150,63 @@ class Term:
         else:  # self is Abstraction
             return 1 + self._body.verticesNumber
 
-    def normalize(self, strategy):
+    def normalize(self, strategy, update_bound_vars=True):
         """
-      :param strategy: OneStepStrategy
-      :return tuple of the normal form of the term and number of steps of betta reduction
-      """
+        :param strategy: OneStepStrategy
+        :param update_bound_vars:
+        :return tuple of the normal form of the term and number of steps of betta reduction
+        """
         term = self._updateBoundVariables()
         count = 0
         while term.redexes != []:
             term = term._betaConversion(strategy)
+            if update_bound_vars:
+                term = term._updateBoundVariables()
             count += 1
             if term.verticesNumber > 7000 or count > 400:
-                return (self, float('inf'))
+                return (self, float("inf"))
         return (term, count)
+
+    def normalize_no_lim(self, strategy):
+        """
+        :param strategy: OneStepStrategy
+        :return tuple of the normal form of the term and number of steps of betta reduction
+        """
+        term = self._updateBoundVariables()
+        count = 0
+        while term.redexes != []:
+            term = term._betaConversion(strategy)
+            term = term._updateBoundVariables()
+            count += 1
+        return term, count
+
+    def normalize_step(self, strategy):
+        """
+        :param strategy: OneStepStrategy
+        :return True -- if it done Betta conversion step
+                False -- otherwise
+        """
+        if self.normalization_term is None:
+            self.normalization_term = self._updateBoundVariables()
+
+        if self.normalization_term.redexes != []:
+            if self.normalization_term.verticesNumber > 7000:
+                return True
+            self.normalization_term = self.normalization_term._betaConversion(strategy)._updateBoundVariables()
+            return True
+        return False
+
+    def restart_normalization(self):
+        """
+        Restart, for possibility to do normalization
+        """
+        self.normalization_term = None
 
     def _betaConversion(self, strategy):
         """
-      :param strategy: OneStepStrategy
-      :return term with redex eliminated using the given strategy
-      """
+        :param strategy: OneStepStrategy
+        :return term with redex eliminated using the given strategy
+        """
         index = strategy.redexIndex(self)
         subterm = self.subterm(index)
         reducedTerm = subterm._removeOuterRedex()
@@ -139,16 +214,16 @@ class Term:
 
     def subterm(self, index: int):
         """
-      By representing the term as a tree, a subtree is returned, which is also a lambda term.
-      The vertex of this subtree has a given index in the topological sorting of the vertices of the original term.
-      :param index - subterm index
-      :return: subterm: Term
-      """
+        By representing the term as a tree, a subtree is returned, which is also a lambda term.
+        The vertex of this subtree has a given index in the topological sorting of the vertices of the original term.
+        :param index - subterm index
+        :return: subterm: Term
+        """
         if index == 1:
             return self
 
         if self.isAtom:
-            ValueError('index value is incorrect')
+            ValueError("index value is incorrect")
         elif self.isApplication:
             if self._sub.verticesNumber + 1 >= index:
                 return self._sub.subterm(index - 1)
@@ -159,22 +234,25 @@ class Term:
 
     def setSubterm(self, index: int, term):
         """
-      By representing the term as a tree, a subtree is set, which is also a lambda term.
-      The vertex of this subtree has a given index in the topological sorting of the vertices of the original term.
-      :param index - subterm index
-      :param term - λ-term to which the subterm will be replaced
-      :return: updated λ-term
-      """
+        By representing the term as a tree, a subtree is set, which is also a lambda term.
+        The vertex of this subtree has a given index in the topological sorting of the vertices of the original term.
+        :param index - subterm index
+        :param term - λ-term to which the subterm will be replaced
+        :return: updated λ-term
+        """
         if index == 1:
             return term
 
         if self.isAtom:
-            ValueError('index value is incorrect')
+            ValueError("index value is incorrect")
         elif self.isApplication:
             if self._sub.verticesNumber + 1 >= index:
                 return Application(self._sub.setSubterm(index - 1, term), self._obj)
             else:
-                return Application(self._sub, self._obj.setSubterm(index - self._sub.verticesNumber - 1, term))
+                return Application(
+                    self._sub,
+                    self._obj.setSubterm(index - self._sub.verticesNumber - 1, term),
+                )
         else:  # self is Abstraction
             return Abstraction(self._head, self._body.setSubterm(index - 1, term))
 
@@ -183,10 +261,17 @@ class Term:
         if self.isAtom:
             return self
         elif self.isApplication:
-            return Application(self._sub._updateBoundVariables(), self._obj._updateBoundVariables())
+            return Application(
+                self._sub._updateBoundVariables(), self._obj._updateBoundVariables()
+            )
         else:  # self is Abstraction
             newVar = Var()
-            return Abstraction(newVar, self._body._replaceVariable(self._head, Atom(newVar))._updateBoundVariables())
+            return Abstraction(
+                newVar,
+                self._body._replaceVariable(
+                    self._head, Atom(newVar)
+                )._updateBoundVariables(),
+            )
 
     def _removeOuterRedex(self):
         """apply the betta conversion to the lambda term, removing the outer betta redex"""
@@ -202,7 +287,10 @@ class Term:
         if self.isAtom:
             return term if self._var == var else self
         elif self.isApplication:
-            return Application(self._sub._replaceVariable(var, term), self._obj._replaceVariable(var, term))
+            return Application(
+                self._sub._replaceVariable(var, term),
+                self._obj._replaceVariable(var, term),
+            )
         else:  # self is Abstraction
             return Abstraction(self._head, self._body._replaceVariable(var, term))
 
