@@ -1,4 +1,4 @@
-from term_engine import Term, LambdaError
+from calculus_path_mod.term_engine import Term, LambdaError
 
 
 def is_path(s):

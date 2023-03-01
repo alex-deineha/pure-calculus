@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
-from term_engine import Term
+from calculus_path_mod.term_engine import Term
+import random
 
 
 class OneStepStrategy(ABC):
