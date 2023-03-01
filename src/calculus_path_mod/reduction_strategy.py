@@ -41,3 +41,39 @@ class RIStrategy(OneStepStrategy):
             return init_index + 1
         # self is Abstraction:
         return self.redex_index(term._data[1], init_index + 1)
+
+
+class RandomOuterStrategy(OneStepStrategy):
+    def redex_index(self, term: Term, init_index=0) -> int:
+        count_redexes = len(term.redexes)
+        print(f"count_redexes: {count_redexes}")
+        if term.kind == "atom" or count_redexes == 0:
+            raise ValueError("The term doesn't contain a redex")
+        elif term.kind == "application":
+            index = random.randint(0, count_redexes - 1)
+            if term.is_beta_redex and index <= int(count_redexes / 2):
+                return init_index + 1
+            elif len(term._data[0].redexes) >= index and len(term._data[0].redexes) != 0:
+                return self.redex_index(term._data[0], init_index + 1)
+            else:
+                return self.redex_index(term._data[1], init_index + term._data[0].vertices_number + 1)
+        else:
+            return self.redex_index(term._data[1], init_index + 1)
+
+
+class RandomInnerStrategy(OneStepStrategy):
+    def redex_index(self, term: Term, init_index=0) -> int:
+        count_redexes = len(term.redexes)
+        print(f"count_redexes: {count_redexes}")
+        if term.kind == "atom" or count_redexes == 0:
+            raise ValueError("The term doesn't contain a redex")
+        elif term.kind == "application":
+            index = random.randint(0, count_redexes - 1)
+            if len(term._data[1].redexes) != 0 and index <= int(count_redexes / 2):
+                return self.redex_index(term._data[1],
+                                        init_index + term._data[0].vertices_number + 1)
+            if len(term._data[0].redexes) > 0:
+                return self.redex_index(term._data[0], init_index + 1)
+            return init_index + 1
+        else:
+            return self.redex_index(term._data[1], init_index + 1)
