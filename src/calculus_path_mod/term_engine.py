@@ -1,3 +1,6 @@
+DEF_VAR_NAMES = "xyabcdejinmtrqwuopsfghklzv"
+
+
 class LambdaError(Exception):
     __errmsg = [
         "unrecognised error",
@@ -51,6 +54,38 @@ class Term:  # the basic abstract class for representing a term
             return f"({self._data[0]} {self._data[1]})"
         else:  # self.kind == "absraction"
             return f"(λ{self._data[0]}. {self._data[1]})"
+
+    def _get_list_variables(self):
+        if self.kind == "atom":
+            return [self._data._data]
+        if self.kind == "application":
+            return self._data[0]._get_list_variables() + self._data[1]._get_list_variables()
+        return [self._data[0]._data] + self._data[1]._get_list_variables()
+
+    def _get_var_pseudonyms(self):
+        unique_vars_inx = set(self._get_list_variables())
+        pseudonyms = dict()
+        for inx, uvi in enumerate(unique_vars_inx):
+            pseudonyms[uvi] = (
+                DEF_VAR_NAMES[inx]
+                if inx < len(DEF_VAR_NAMES)
+                else DEF_VAR_NAMES[inx % len(DEF_VAR_NAMES)]
+                     + "_"
+                     + str(int(inx / len(DEF_VAR_NAMES)))
+            )
+
+        return pseudonyms
+
+    def funky_str(self, pseudonyms: dict = None):
+        if pseudonyms is None:
+            pseudonyms = self._get_var_pseudonyms()
+        if self.kind == "atom":
+            return pseudonyms[self._data._data]
+        if self.kind == "application":
+            return (
+                f"({self._data[0].funky_str(pseudonyms)} {self._data[1].funky_str(pseudonyms)})"
+            )
+        return f"(λ{pseudonyms[self._data[0]._data]}.{self._data[1].funky_str(pseudonyms)})"
 
     # def __eq__(self, another):
     #     if isinstance(another, Term):
