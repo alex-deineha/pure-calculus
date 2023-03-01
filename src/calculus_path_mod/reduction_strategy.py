@@ -46,7 +46,6 @@ class RIStrategy(OneStepStrategy):
 class RandomOuterStrategy(OneStepStrategy):
     def redex_index(self, term: Term, init_index=0) -> int:
         count_redexes = len(term.redexes)
-        print(f"count_redexes: {count_redexes}")
         if term.kind == "atom" or count_redexes == 0:
             raise ValueError("The term doesn't contain a redex")
         elif term.kind == "application":
@@ -64,7 +63,6 @@ class RandomOuterStrategy(OneStepStrategy):
 class RandomInnerStrategy(OneStepStrategy):
     def redex_index(self, term: Term, init_index=0) -> int:
         count_redexes = len(term.redexes)
-        print(f"count_redexes: {count_redexes}")
         if term.kind == "atom" or count_redexes == 0:
             raise ValueError("The term doesn't contain a redex")
         elif term.kind == "application":
