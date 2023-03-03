@@ -6,6 +6,12 @@ from calculus_path_mod.term_engine import Var, Term, Atom, Application as App, A
 
 
 def term_to_dict(term: Term, unique_vars: dict = None) -> dict:
+    """
+    :param term: tree representation of term via Term class
+    :param unique_vars: dict, where key is _data value from Vars in terms and value is a unique index
+    :return: dict representation of a term
+    """
+
     if unique_vars is None:
         unique_vars = set(term._get_list_variables())
         unique_vars = {key: val for val, key in enumerate(unique_vars)}
@@ -22,6 +28,12 @@ def term_to_dict(term: Term, unique_vars: dict = None) -> dict:
 
 
 def dict_to_term(term_dict: dict, fresh_vars: dict = dict()) -> Term:
+    """
+    :param term_dict: dict representation of a term
+    :param fresh_vars: dict, where key is a unique index, and value is a new Var object
+    :return: a tree representation of term in a Term object
+    """
+
     if term_dict["kind"] == "atom":
         if term_dict["var"] not in fresh_vars.keys():
             fresh_vars[term_dict["var"]] = Var()
@@ -36,12 +48,23 @@ def dict_to_term(term_dict: dict, fresh_vars: dict = dict()) -> Term:
 
 
 def save_terms(file_name: str, list_terms: list, is_overwrite=True):
+    """
+    :param file_name: path to file for saving terms
+    :param list_terms: list of Term objects
+    :param is_overwrite: if it's 'False' - add records to the file, and rewrite file otherwise
+    """
+
     with open(file_name, "w" if is_overwrite else "a") as storage_file:
         for term in list_terms:
             storage_file.write(json.dumps(term_to_dict(term)) + "\n")
 
 
 def load_terms(file_name: str) -> list:
+    """
+    :param file_name: path to file for loading terms
+    :return: list of Term objects
+    """
+
     list_terms = []
     with open(file_name, "r") as storage_file:
         for term_line in storage_file:
