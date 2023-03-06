@@ -43,7 +43,7 @@ class RIStrategy(OneStepStrategy):
         return self.redex_index(term._data[1], init_index + 1)
 
 
-class RandomOuterStrategy(OneStepStrategy):
+class RandomLeftOuterStrategy(OneStepStrategy):
     def redex_index(self, term: Term, init_index=0) -> int:
         count_redexes = len(term.redexes)
         if term.kind == "atom" or count_redexes == 0:
@@ -60,7 +60,7 @@ class RandomOuterStrategy(OneStepStrategy):
             return self.redex_index(term._data[1], init_index + 1)
 
 
-class RandomInnerStrategy(OneStepStrategy):
+class RandomRightInnerStrategy(OneStepStrategy):
     def redex_index(self, term: Term, init_index=0) -> int:
         count_redexes = len(term.redexes)
         if term.kind == "atom" or count_redexes == 0:
