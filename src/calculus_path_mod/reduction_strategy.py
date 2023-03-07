@@ -80,7 +80,8 @@ class RandomRightInnerStrategy(OneStepStrategy):
 
 class RandomOuterStrategy(OneStepStrategy):
     def __init__(self, prob_norm="softmax"):
-        """:param prob_norm: str of 'softmax' or 'sum' which define calculation of probabilities"""
+        """:param prob_norm: str of 'softmax', or 'sum', a 'pow_val' (where val - num value of power, example 'pow_2'),
+         which define calculation of probabilities"""
         self.prob_norm = prob_norm
 
     def _get_redexes_indexes(self, term: Term, init_index: int = 0, path_depth: int = 0):
@@ -108,15 +109,17 @@ class RandomOuterStrategy(OneStepStrategy):
         list_of_indexes = list(dict_redexes_indexes.keys())
         list_of_prob = np.array(list(dict_redexes_indexes.values()), dtype="float64")
 
+        max_depth = 1. + np.amax(list_of_prob)
+        list_of_prob *= -1.
+        list_of_prob += max_depth
+
         if self.prob_norm == "softmax":
-            max_depth = 1. + np.amax(list_of_prob)
-            list_of_prob *= -1.
-            list_of_prob += max_depth
             list_of_prob = np.exp(list_of_prob) / np.sum(np.exp(list_of_prob))
         elif self.prob_norm == "sum":
-            max_depth = 1. + np.amax(list_of_prob)
-            list_of_prob *= -1.
-            list_of_prob += max_depth
+            list_of_prob /= np.sum(list_of_prob)
+        elif "pow" in self.prob_norm:
+            pow_val = float(self.prob_norm.split("_")[1])
+            list_of_prob = np.power(list_of_prob, pow_val)
             list_of_prob /= np.sum(list_of_prob)
         else:
             raise ValueError("Inappropriate value of prob_norm")
@@ -136,6 +139,10 @@ class RandomInnerStrategy(RandomOuterStrategy):
         if self.prob_norm == "softmax":
             list_of_prob = np.exp(list_of_prob) / np.sum(np.exp(list_of_prob))
         elif self.prob_norm == "sum":
+            list_of_prob /= np.sum(list_of_prob)
+        elif "pow" in self.prob_norm:
+            pow_val = float(self.prob_norm.split("_")[1])
+            list_of_prob = np.power(list_of_prob, pow_val)
             list_of_prob /= np.sum(list_of_prob)
         else:
             raise ValueError("Inappropriate value of prob_norm")
