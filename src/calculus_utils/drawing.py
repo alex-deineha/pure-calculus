@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import seaborn as sns
 from fitter import Fitter, get_common_distributions
 
 
@@ -30,6 +31,43 @@ def draw_hist(data):
     print(
         f"Log Norm distribution params: ({mu}, {sigma}); expected value = {np.e ** (mu + (sigma ** 2) / 2)}"
     )
+
+
+def draw_steps_displot(data_to_draw: dict, kde=True, log_scale=(True, False), element: str = "bars",
+                       x_label="steps", multiple: str = "layer", alpha=0.25, y_lines: tuple = None, bins=-1):
+    """
+    :param data_to_draw: a dict, where key is a name of a data seria,
+                        and value is a list of the data seria (in this case steps)
+    :param kde: bool, if it's True than draw density line
+    :param log_scale: tutle of (bool, bool), where the 0-th set x-axis logarithmic scale,
+                      and 1-th set y-axis logarithmic scale
+    :param element: str of 'step' draw histograms as step-line
+                    'poly' draw histograms as poly-angle figure (triangular form)
+                    'bars' -- default histogram plot
+    :param x_label: str of description x-label
+    :param multiple: str of 'stack' -- plot histograms on top of each other
+                     'dodge' -- plot histograms near each other
+                     'fill' -- plot
+                     'layer' -- default histogram plot
+    :param alpha: float value of hist plot
+    :param y_lines: tutle of expected values for each data seria
+    :param bins: int, count of histograms, if -1 use default count of bins
+    """
+
+    if bins < 0:
+        fig = sns.displot(data=data_to_draw, kde=kde, log_scale=log_scale,
+                          element=element, multiple=multiple, alpha=alpha)
+    else:
+        fig = sns.displot(data=data_to_draw, kde=kde, log_scale=log_scale,
+                          element=element, multiple=multiple, alpha=alpha, bins=bins)
+
+    if y_lines:
+        colors_cycle = plt.rcParams['axes.prop_cycle'].by_key()['color']
+        for inx, y_line in enumerate(y_lines):
+            plt.axvline(x=y_line, color=colors_cycle[inx % len(colors_cycle)])
+
+    fig.set_xlabels(label=x_label)
+    plt.show()
 
 
 def draw_cumulative_avg(
