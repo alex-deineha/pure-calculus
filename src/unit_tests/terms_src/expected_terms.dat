@@ -1,0 +1,13 @@
+{"kind": "lambda", "var": 0, "body": {"kind": "atom", "var": 0}}
+{"kind": "lambda", "var": 0, "body": {"kind": "lambda", "var": 1, "body": {"kind": "app", "subj": {"kind": "atom", "var": 0}, "obj": {"kind": "app", "subj": {"kind": "atom", "var": 0}, "obj": {"kind": "app", "subj": {"kind": "atom", "var": 0}, "obj": {"kind": "atom", "var": 1}}}}}}
+{"kind": "lambda", "var": 0, "body": {"kind": "lambda", "var": 1, "body": {"kind": "app", "subj": {"kind": "atom", "var": 0}, "obj": {"kind": "app", "subj": {"kind": "atom", "var": 0}, "obj": {"kind": "app", "subj": {"kind": "atom", "var": 0}, "obj": {"kind": "app", "subj": {"kind": "atom", "var": 0}, "obj": {"kind": "atom", "var": 1}}}}}}}
+{"kind": "lambda", "var": 0, "body": {"kind": "lambda", "var": 1, "body": {"kind": "atom", "var": 1}}}
+{"kind": "lambda", "var": 0, "body": {"kind": "lambda", "var": 1, "body": {"kind": "app", "subj": {"kind": "atom", "var": 0}, "obj": {"kind": "app", "subj": {"kind": "atom", "var": 0}, "obj": {"kind": "app", "subj": {"kind": "atom", "var": 0}, "obj": {"kind": "app", "subj": {"kind": "atom", "var": 0}, "obj": {"kind": "atom", "var": 1}}}}}}}
+{"kind": "lambda", "var": 0, "body": {"kind": "lambda", "var": 1, "body": {"kind": "atom", "var": 1}}}
+{"kind": "lambda", "var": 1, "body": {"kind": "lambda", "var": 0, "body": {"kind": "app", "subj": {"kind": "atom", "var": 1}, "obj": {"kind": "app", "subj": {"kind": "atom", "var": 1}, "obj": {"kind": "app", "subj": {"kind": "atom", "var": 1}, "obj": {"kind": "app", "subj": {"kind": "atom", "var": 1}, "obj": {"kind": "app", "subj": {"kind": "atom", "var": 1}, "obj": {"kind": "atom", "var": 0}}}}}}}}
+{"kind": "lambda", "var": 0, "body": {"kind": "lambda", "var": 1, "body": {"kind": "app", "subj": {"kind": "atom", "var": 0}, "obj": {"kind": "app", "subj": {"kind": "atom", "var": 0}, "obj": {"kind": "app", "subj": {"kind": "atom", "var": 0}, "obj": {"kind": "atom", "var": 1}}}}}}
+{"kind": "lambda", "var": 0, "body": {"kind": "lambda", "var": 1, "body": {"kind": "atom", "var": 1}}}
+{"kind": "lambda", "var": 0, "body": {"kind": "lambda", "var": 1, "body": {"kind": "atom", "var": 1}}}
+{"kind": "lambda", "var": 0, "body": {"kind": "lambda", "var": 1, "body": {"kind": "atom", "var": 0}}}
+{"kind": "lambda", "var": 0, "body": {"kind": "lambda", "var": 1, "body": {"kind": "atom", "var": 0}}}
+{"kind": "lambda", "var": 1, "body": {"kind": "lambda", "var": 0, "body": {"kind": "atom", "var": 0}}}
