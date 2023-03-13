@@ -63,9 +63,17 @@ class Term:  # the basic abstract class for representing a term
         return [self._data[0]._data] + self._data[1]._get_list_variables()
 
     def _get_var_pseudonyms(self):
-        unique_vars_inx = set(self._get_list_variables())
+        list_vars = self._get_list_variables()
+        set_vars = set()
+        list_ordered_vars = []
+
+        for var_ in list_vars:
+            if var_ not in set_vars:
+                set_vars.add(var_)
+                list_ordered_vars.append(var_)
+
         pseudonyms = dict()
-        for inx, uvi in enumerate(unique_vars_inx):
+        for inx, uvi in enumerate(list_ordered_vars):
             pseudonyms[uvi] = (
                 DEF_VAR_NAMES[inx]
                 if inx < len(DEF_VAR_NAMES)
