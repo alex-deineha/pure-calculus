@@ -55,14 +55,25 @@ class Term:  # the basic abstract class for representing a term
         else:  # self.kind == "absraction"
             return f"(λ{self._data[0]}. {self._data[1]})"
 
-    def _get_list_variables(self):
+    def _get_list_variables(self) -> list:
+        """
+        :return: list of all variable indexes, which appear in
+                 the term tree, using left-recursion through the tree
+        """
+
         if self.kind == "atom":
             return [self._data._data]
         if self.kind == "application":
             return self._data[0]._get_list_variables() + self._data[1]._get_list_variables()
         return [self._data[0]._data] + self._data[1]._get_list_variables()
 
-    def _get_var_pseudonyms(self):
+    def _get_var_pseudonyms(self) -> dict:
+        """
+        Using a list variables of the terms generate pseudonyms of the term variables.
+        Can be used for printing nice view of term or for colorizing the tree.
+        :return: dict, where key is a var index and var is a variable name
+        """
+
         list_vars = self._get_list_variables()
         set_vars = set()
         list_ordered_vars = []
@@ -84,7 +95,13 @@ class Term:  # the basic abstract class for representing a term
 
         return pseudonyms
 
-    def funky_str(self, pseudonyms: dict = None):
+    def funky_str(self, pseudonyms: dict = None) -> str:
+        """
+        ! Warning when call the method you don't need to set any parameters.
+        :param pseudonyms: dict, where key is a var index and var is a variable name
+        :return: str representation of the
+        """
+
         if pseudonyms is None:
             pseudonyms = self._get_var_pseudonyms()
         if self.kind == "atom":
