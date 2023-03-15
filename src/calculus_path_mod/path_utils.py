@@ -1,11 +1,22 @@
 from calculus_path_mod.term_engine import Term, LambdaError
 
 
-def is_path(s):
+def is_path(s: str) -> bool:
+    """
+    :param s: string representation of the term as a string
+    :return: True if 's' is a path representation, False otherwise
+    """
+
     return isinstance(s, str) and len(s) == len([c for c in s if c in "ldr"])
 
 
-def subref(t, p):
+def subref(t: Term, p: str) -> Term:
+    """
+    :param t: Term object where trying to find a subterm
+    :param p: str path to subterm
+    :return: subterm
+    """
+
     if isinstance(t, Term) and is_path(p):
         if p == "":
             return t
@@ -21,7 +32,7 @@ def subref(t, p):
                       f", but it received '{t}' and '{p}'")
 
 
-def paths(t):
+def paths(t: Term) -> dict:
     """collects all paths that refer to some correct subterm of 't'
     Result is a dictionary whose keys are paths determining
         the corresponding subterm
@@ -44,14 +55,20 @@ def paths(t):
                       f", but it received '{t}'")
 
 
-def similar(t1, t2):
+def similar(t1: Term, t2: Term) -> bool:
+    """
+    :param t1: object of a Term tree
+    :param t2: object of a Term tree
+    :return: True if trees have similar structure.
+    """
+
     if isinstance(t1, Term) and isinstance(t2, Term):
         return paths(t1).keys() == paths(t2).keys()
     raise LambdaError("'similar' waits for two instances of Term"
                       f", but it received '{t1}' and '{t2}'")
 
 
-def vars(t):
+def vars(t: Term) -> dict:
     """builds a dictionary, in which keys are refs to term variables,
     values are pairs constructed from the corresponding variable and
     the ref to the abstraction-superterm that bound the variable if
