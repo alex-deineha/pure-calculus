@@ -7,6 +7,13 @@ from calculus_path_mod.term_engine import Atom, Var, Abstraction, Application
 
 
 def genTerm(p: float, uplimit: int, vars: List[Var] = [], trigger_by_application=False):
+    """
+    :param p: probability for generating Lambda, App, ...
+    :param uplimit: max count of vertices in the term
+    :param vars: list of vars used in the term, used in recursive build of the tree
+    :param trigger_by_application: local variable used while generate a subject for the App
+    """
+
     if uplimit < 1:
         return None
 
@@ -38,6 +45,13 @@ def gen_lambda_terms(
         up_vertices_limit=60,
         gen_const=7_000,
         return_exact=True):
+    """
+    :param count: count of generated terms
+    :param down_vertices_limit: minimum count of vertices in a new term
+    :param up_vertices_limit: maximum count of vertices in a new term
+    :param gen_const: count tries of generation
+    :param return_exact: return expected number of terms
+    """
     def filter_terms(term):
         return term and down_vertices_limit < term.vertices_number < up_vertices_limit
 
@@ -70,6 +84,13 @@ def gen_filtered_lambda_terms(
         down_vertices_limit=50,
         up_vertices_limit=60,
         filtering_strategy=LOStrategy()):
+    """
+    :param count_terms: count terms to generate
+    :param down_vertices_limit: minimum count of vertices of a new term
+    :param up_vertices_limit: maximum count of vertices of a new term
+    :param filtering_strategy: strategy for filtering terms
+    """
+
     terms = []
     steps_by_strategy = []
     while len(terms) < count_terms:
