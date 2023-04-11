@@ -69,6 +69,26 @@ class RIStrategy(OneStepStrategy):
         return self.redex_index(term._data[1], init_index + 1)
 
 
+class RandomInTreeStrategy(OneStepStrategy):
+    def redex_index(self, term: Term, init_index=0) -> int:
+        # The main idea check current vertex
+        # if it's a redex return its coordinate in the tree
+        redexes = term.redexes
+
+        if (term.kind == "atom") or (len(term.redexes) == 0):
+            raise ValueError("The term doesn't contain a redex")
+        if term.kind == "application":
+            index = random.randint(0, len(redexes) - 1)
+            if term.is_beta_redex and index == 0:
+                return init_index + 1
+            if (len(term._data[0].redexes) != 0) and (len(term._data[0].redexes) >= index):
+                return self.redex_index(term._data[0], init_index + 1)
+            return self.redex_index(term._data[1],
+                                    init_index + term._data[0].vertices_number + 1)
+        # self is Abstraction:
+        return self.redex_index(term._data[1], init_index + 1)
+
+
 class RandomLeftOuterStrategy(OneStepStrategy):
     def redex_index(self, term: Term, init_index=0) -> int:
         # The main idea check current vertex
