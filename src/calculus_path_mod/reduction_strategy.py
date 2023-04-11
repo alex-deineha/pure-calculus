@@ -201,3 +201,15 @@ class RandomInnerStrategy(RandomOuterStrategy):
             raise ValueError("Inappropriate value of prob_norm")
 
         return np.random.choice(list_of_indexes, p=list_of_prob)
+
+
+class RandomStrategy(RandomOuterStrategy):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def redex_index(self, term: Term, init_index=0) -> int:
+        # Set equal probabilities for redexes coordinates,
+        # and in the end choose and return redex coordinate.
+
+        dict_redexes_indexes = self._get_redexes_indexes(term)
+        return np.random.choice(list(dict_redexes_indexes.keys()))
