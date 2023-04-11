@@ -32,6 +32,24 @@ class LOStrategy(OneStepStrategy):
         return self.redex_index(term._data[1], init_index + 1)
 
 
+class LIStrategy(OneStepStrategy):
+    def redex_index(self, term: Term, init_index=0) -> int:
+        # The main idea check current vertex
+        # if it's a redex return its coordinate in the tree
+
+        if (term.kind == "atom") or (len(term.redexes) == 0):
+            raise ValueError("The term doesn't contain a redex")
+        if term.kind == "application":
+            if len(term._data[0].redexes) != 0:
+                return self.redex_index(term._data[0], init_index + 1)
+            elif len(term._data[1].redexes) != 0:
+                return self.redex_index(term._data[1],
+                                        init_index + term._data[0].vertices_number + 1)
+            return init_index + 1
+        # self is Abstraction:
+        return self.redex_index(term._data[1], init_index + 1)
+
+
 class RIStrategy(OneStepStrategy):
     def redex_index(self, term: Term, init_index=0) -> int:
         # The main idea go in the right vertex (object) of the application
