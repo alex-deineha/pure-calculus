@@ -195,7 +195,10 @@ class RandomOuterStrategy(OneStepStrategy):
         else:
             raise ValueError("Inappropriate value of prob_norm")
 
-        return np.random.choice(list_of_indexes, p=list_of_prob)
+        choose = np.random.choice(list_of_indexes, p=list_of_prob)
+        # print(f"depth={list(dict_redexes_indexes.values())} -> indexes={list_of_indexes} probs={list_of_prob} choose={choose}")
+        return choose
+        # return np.random.choice(list_of_indexes, p=list_of_prob)
 
 
 class RandomInnerStrategy(RandomOuterStrategy):
@@ -221,7 +224,35 @@ class RandomInnerStrategy(RandomOuterStrategy):
         else:
             raise ValueError("Inappropriate value of prob_norm")
 
-        return np.random.choice(list_of_indexes, p=list_of_prob)
+        choose = np.random.choice(list_of_indexes, p=list_of_prob)
+        # print(f"depth={list(dict_redexes_indexes.values())} -> indexes={list_of_indexes} probs={list_of_prob} choose={choose}")
+        return choose
+        # return np.random.choice(list_of_indexes, p=list_of_prob)
+
+
+class GeneralRandomStrategy(RandomOuterStrategy):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def redex_index(self, term: Term, init_index=0) -> int:
+        # Using the redex coordinates and the depth values generate probabilities
+        # of choosing for each redex, and in the end choose and return redex coordinate.
+
+        dict_redexes_indexes = self._get_redexes_indexes(term)
+        list_of_indexes = list(dict_redexes_indexes.keys())
+        list_of_prob = np.array(list(dict_redexes_indexes.values()), dtype="float64")
+
+        if "pow" in self.prob_norm:
+            pow_val = float(self.prob_norm.split("_")[1])
+            list_of_prob = np.power(list_of_prob, pow_val)
+            list_of_prob /= np.sum(list_of_prob)
+        else:
+            raise ValueError("Inappropriate value of prob_norm")
+
+        choose = np.random.choice(list_of_indexes, p=list_of_prob)
+        # print(f"depth={list(dict_redexes_indexes.values())} -> indexes={list_of_indexes} probs={list_of_prob} choose={choose}")
+        return choose
+        # return np.random.choice(list_of_indexes, p=list_of_prob)
 
 
 class RandomStrategy(RandomOuterStrategy):
