@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import List
 from calculus_path_mod.term_engine import Term
 import random
 import numpy as np
@@ -233,3 +234,19 @@ class RandomStrategy(RandomOuterStrategy):
 
         dict_redexes_indexes = self._get_redexes_indexes(term)
         return np.random.choice(list(dict_redexes_indexes.keys()))
+
+
+class MixedStrategy(OneStepStrategy):
+    def __init__(self, strategies: List[OneStepStrategy], probability_vector: list):
+        self.strategies = strategies
+        self.probability_vector = probability_vector
+
+    def redex_index(self, term: Term, init_index: int = 0) -> int:
+        p = random.random()
+        index = 0
+        index_prob = self.probability_vector[0]
+        while p > index_prob:
+            index += 1
+            index_prob += self.probability_vector[index]
+
+        return self.strategies[index].redex_index(term)
