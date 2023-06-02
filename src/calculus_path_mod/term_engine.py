@@ -160,7 +160,7 @@ class Term:  # the basic abstract class for representing a term
         :return: dict[Var, dict[('free'/'bound'), int]]
         """
         if self.kind == "atom":
-            return {self._data: {"free": 1, "bound": 0}}
+            return {self._data._data: {"free": 1, "bound": 0}}
         if self.kind == "application":
             vars_, auxvars_ = dict(self._data[0]._vars), self._data[1]._vars
             for var_ in auxvars_:
@@ -173,8 +173,8 @@ class Term:  # the basic abstract class for representing a term
         # self is Abstraction:
         vars_ = dict(self._data[1]._vars)
         try:
-            vars_[self._data[0]]["bound"] += vars_[self._data[0]]["free"]
-            vars_[self._data[0]]["free"] = 0
+            vars_[self._data[0]._data]["bound"] += vars_[self._data[0]._data]["free"]
+            vars_[self._data[0]._data]["free"] = 0
         except KeyError:
             pass
         return vars_
