@@ -99,6 +99,8 @@ HELP_STR = """#help -- to call this menu
 #show-all -- show all terms defined by user
 #show TERM_NAME -- to get description by the term
 #show term_name -- to show a defined term by term name
+#show-full TERM_NAME -- to get a full term definition by the term nem
+#show-full term_name -- to show a full term definition of a defined term by term name
 
 #import /path_to_lib/lib_file.lmd -- for including terms from other file. 
                 It must have a name in which will be defined a term
@@ -344,6 +346,21 @@ class LambdaCalculusInterpreter:
                     result += f"{key_} = {val_.funky_str()}\n"
             else:
                 result = "No terms in own library"
+        elif "#show-full" in command_str:
+            commands_list = command_str.split()
+            commands_list = [comm_ for comm_ in commands_list if comm_ != ""]
+            if len(commands_list) < 2:
+                result = "command 'show-full' should contains after it names of terms"
+            else:
+                commands_list = commands_list[1:]
+                result = "Full terms description:\n"
+                for comm_ in commands_list:
+                    if comm_ in LAMBDA_COMMANDS_DICT.keys():
+                        result += f"* {comm_} == {eval(LAMBDA_COMMANDS_DICT[comm_]).funky_str()}\n"
+                    elif comm_ in self.terms_container.keys():
+                        result += f"* {comm_} == {self.terms_container[comm_].funky_str()}\n"
+                    else:
+                        result += f"{comm_} doesn't have a term definition"
         elif "#show" in command_str:
             commands_list = command_str.split()
             commands_list = [comm_ for comm_ in commands_list if comm_ != ""]
