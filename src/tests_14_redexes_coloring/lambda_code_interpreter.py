@@ -212,7 +212,7 @@ def tokenize_term(lambda_code) -> list:
     return lambda_code_tokenized
 
 
-def process_tokens_to_pt(lambda_code: str, vars_list: list) -> str:
+def process_tokens_to_pt(lambda_code: str, vars_list: list, local_term_defs_list: list = None) -> str:
     # is abstraction
     if re.match(r"\s*\(\s*@\s*[a-zA-Z0-9_-].\s*", lambda_code):
         inx_open = 0
@@ -237,7 +237,7 @@ def process_tokens_to_pt(lambda_code: str, vars_list: list) -> str:
                 var_name = var
                 break
 
-        return f"Lambda({var_name}, {process_tokens_to_pt(lambda_code, vars_list)})"
+        return f"Lambda({var_name}, {process_tokens_to_pt(lambda_code, vars_list, local_term_defs_list)})"
     else:  # it is an app or a single term
         if ("(" in lambda_code) and (")" in lambda_code):  # it is an app
             inx_open = 0
@@ -254,19 +254,21 @@ def process_tokens_to_pt(lambda_code: str, vars_list: list) -> str:
             if len(tokens) == 0:
                 raise Exception("Something went wrong")
             elif len(tokens) == 1:
-                return process_tokens_to_pt(tokens[0], vars_list)
+                return process_tokens_to_pt(tokens[0], vars_list, local_term_defs_list)
             elif len(tokens) == 2:
-                return f"App({process_tokens_to_pt(tokens[0], vars_list)}, {process_tokens_to_pt(tokens[1], vars_list)})"
+                return f"App({process_tokens_to_pt(tokens[0], vars_list, local_term_defs_list)}, {process_tokens_to_pt(tokens[1], vars_list, local_term_defs_list)})"
             else:
                 result_line = "multi_app_term("
                 for token in tokens:
-                    result_line += str(process_tokens_to_pt(token, vars_list)) + ", "
+                    result_line += str(process_tokens_to_pt(token, vars_list, local_term_defs_list)) + ", "
                 result_line += ")"
                 return result_line
         else:  # it is a single term
             lambda_code = lambda_code.strip()
             if lambda_code in LAMBDA_COMMANDS_DICT.keys():
                 return LAMBDA_COMMANDS_DICT[lambda_code]
+            elif local_term_defs_list and (lambda_code in local_term_defs_list):
+                return f">>{lambda_code}<<"
             else:
                 if ("." in lambda_code) \
                         or ("@" in lambda_code):
@@ -281,7 +283,7 @@ def process_tokens_to_pt(lambda_code: str, vars_list: list) -> str:
             pass
 
 
-def convert_to_python_code(lambda_code: str) -> str:
+def convert_to_python_code(lambda_code: str, local_term_defs_list: list = None) -> str:
     # remove "\n", "\t", and outer spaces symbol
     lambda_code = lambda_code.replace("\n", "").replace("\t", " ").strip()
     if lambda_code == "":
@@ -303,23 +305,46 @@ def convert_to_python_code(lambda_code: str) -> str:
     vars_atoms_list = vars_atoms_list.split()
     vars_atoms_list = [va_name for va_name in vars_atoms_list if va_name not in LAMBDA_COMMANDS_DICT.keys()]
     vars_atoms_list = [va_name for va_name in vars_atoms_list if not re.match(r"NUM\[[0-9]*]", va_name)]
+    if local_term_defs_list:
+        vars_atoms_list = [va_name for va_name in vars_atoms_list if va_name not in local_term_defs_list]
     vars_atoms_list = list(set(vars_atoms_list))
 
     result_line = "def gen_term():\n"
     for var_name in vars_atoms_list:
         result_line += "\t" + var_name + " = Var()\n"
         result_line += "\t" + var_name + f"_ = Atom({var_name})\n"
-
-    result_line += "\n\tresult_term = " + process_tokens_to_pt(lambda_code, vars_atoms_list)
+    if vars_atoms_list:
+        result_line += "\n"
+    result_line += "\tresult_term = " + process_tokens_to_pt(lambda_code, vars_atoms_list, local_term_defs_list)
     result_line += "\n\treturn result_term"
     return result_line
 
 
-def conv_to_term(lambda_code: str) -> Term:
+def conv_to_term(lambda_code: str, local_term_defs_dict: dict = None) -> Term:
     # define a function for generating a term
     # using exec() and call this function to get result
-    exec(convert_to_python_code(lambda_code))
-    return eval("gen_term()")
+    term_def_str = convert_to_python_code(
+        lambda_code,
+        list(local_term_defs_dict.keys()) if local_term_defs_dict else None
+    )
+    params_dict = None
+    params_str = ""
+    if ">>" in term_def_str:
+        required_terms = re.findall(r">>(.*?)<<", term_def_str)
+        required_terms = list(set(required_terms))
+        params_dict = dict()
+        for r_term in required_terms:
+            params_dict[r_term] = local_term_defs_dict[r_term]._update_bound_vars()
+            term_def_str = term_def_str.replace(f">>{r_term}<<", r_term)
+        params_str = ", ".join(required_terms)
+        term_def_str = term_def_str[:13] + params_str + term_def_str[13:]
+        term_def_str = term_def_str[:]
+    if params_dict:
+        exec(term_def_str, globals(), params_dict)
+        return eval(f"gen_term({params_str})", globals(), params_dict)
+    else:
+        exec(term_def_str)
+        return eval("gen_term()", params_dict)
 
 
 class LambdaCalculusInterpreter:
@@ -333,7 +358,7 @@ class LambdaCalculusInterpreter:
         if (not command_str) or (command_str == "#help"):
             result = HELP_STR
         elif command_str == "#show-strategies":
-            result = "Strategies: "
+            result = "Strategies: \n"
             for key_, val_ in REDUCTION_STRATEGIES_DICT.items():
                 result += f"* {key_} is {val_[1]}\n"
         elif command_str == "#show-syntax":
@@ -368,7 +393,7 @@ class LambdaCalculusInterpreter:
                 result = "command 'show' should contains after it names of terms"
             else:
                 commands_list = commands_list[1:]
-                result = "Terms description\n"
+                result = "Terms description:\n"
                 for comm_ in commands_list:
                     if comm_ in LAMBDA_COMMANDS_DESCRIPT_DICT.keys():
                         result += f"* {comm_} == {LAMBDA_COMMANDS_DESCRIPT_DICT[comm_]}\n"
@@ -403,7 +428,7 @@ class LambdaCalculusInterpreter:
         def_term_arr[0] = def_term_arr[0].strip()
 
         try:
-            term_obj = conv_to_term(def_term_arr[1])
+            term_obj = conv_to_term(def_term_arr[1], self.terms_container)
             self.defs_container[def_term_arr[0]] = def_term_arr[1]
             self.terms_container[def_term_arr[0]] = term_obj
             return f"Imported term could be fined & reduced by name: '{def_term_arr[0]}'"
@@ -418,7 +443,7 @@ class LambdaCalculusInterpreter:
             return "ERROR: For defining term you should have a term name, and a term definition"
 
         try:
-            term_obj = conv_to_term(def_term_arr[1])
+            term_obj = conv_to_term(def_term_arr[1], self.terms_container)
             self.defs_container[def_term_arr[0]] = def_term_arr[1]
             self.terms_container[def_term_arr[0]] = term_obj
             return f"Defined term could be found & reduced by name: '{def_term_arr[0]}'"
@@ -491,17 +516,18 @@ class LambdaCalculusInterpreter:
 
 
 if __name__ == "__main__":
-    print(convert_to_python_code("(PLUS NUM[2] NUM[3])"))
-
     inter_obj = LambdaCalculusInterpreter()
 
-    res = inter_obj.process_commands("#define sum_term = ( PLUS ")
-    print(res)
-    res = inter_obj.process_commands(" NUM[2] ")
-    print(res)
-    res = inter_obj.process_commands(" NUM[3] ")
-    print(res)
-    res = inter_obj.process_commands("")
-    print(res)
+    inter_obj.process_commands("#define sum_term = ( PLUS ")
+    inter_obj.process_commands(" NUM[2] ")
+    inter_obj.process_commands(" NUM[3] ")
+    inter_obj.process_commands("")
     res = inter_obj.process_commands(")#")
     print(res)
+    print(" >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+    print(inter_obj.process_commands("#reduce sum_term"))
+    print(" >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+    print(inter_obj.process_commands("""
+            #define new_term = (IF (ISZERO sum_term_red) TRUE FALSE)
+            #""")
+          )
