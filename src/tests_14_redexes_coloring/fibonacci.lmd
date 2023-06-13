@@ -1,0 +1,14 @@
+fib_term = (Y (@f. (@pp. (
+    IF (ISZERO (FIRST pp))
+        (FIRST (SECOND pp))
+        (f (PAIR
+            (PRED (FIRST pp))
+            (PAIR
+                (SECOND (SECOND pp))
+                (PLUS (FIRST (SECOND pp)) (SECOND (SECOND pp)))
+            )
+            )
+        )
+    )
+))
+)
