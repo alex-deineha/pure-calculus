@@ -355,7 +355,8 @@ class LambdaCalculusInterpreter:
 
     def console_engine_show(self, command_str: str = None):
         result = ""
-        if (not command_str) or (command_str == "#help"):
+        command_str = command_str.replace("\n", " ").strip()
+        if command_str == "#help":
             result = HELP_STR
         elif command_str == "#show-strategies":
             result = "Strategies: \n"
@@ -487,7 +488,7 @@ class LambdaCalculusInterpreter:
     def process_commands(self, command_str: str = None):
         if not command_str or command_str == "":
             return None
-        command_str = command_str.replace("\n", " ").strip()
+
         if self.commands_buffer == "":
             if "#import" in command_str:
                 self.commands_buffer = ""
