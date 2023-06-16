@@ -107,11 +107,11 @@ HELP_STR = """#help -- to call this menu
 #define term_name = term_definition # -- for defining term in the memory,
                 MUST ENDS on '#' symbol for allowing multiline input 
 #reduce term_name -- reduce the term by term_name by LeftOuter str, 
-                reduced term will appear in term_name_red
+                reduced term will appear in term_name_red_LO
 #reduce term_name STRATEGY_NAME -- reduce term by term_name with defined strategy
                 reduced term will appear in term_name_red_strategy_name
 #reduce-no-lim term_name -- reduce the term by term_name by LeftOuter str, 
-                reduced term will appear in term_name_red
+                reduced term will appear in term_name_red_LO
 #reduce-no-lim term_name STRATEGY_NAME -- reduce term by term_name with defined strategy
                 reduced term will appear in term_name_red_strategy_name"""
 
@@ -454,34 +454,37 @@ class LambdaCalculusInterpreter:
     def console_engine_reduce(self, command_std: str = None, is_lim_reduction=True):
         commands_list = command_std.strip().split()
         commands_list = [comm_ for comm_ in commands_list if comm_ != ""]
-        if len(commands_list) == 2:
+
+        if len(commands_list) > 1:
             term_name = commands_list[1].strip()
+            strategy_name = commands_list[2].strip() if len(commands_list) == 3 else "LO"
+
+            if strategy_name not in REDUCTION_STRATEGIES_DICT.keys():
+                return f"Can't reduce '{term_name}' with strategy '{strategy_name}'.\n" \
+                       f"There is no strategy with name '{strategy_name}'"
+
+            term_to_norm = None
             if term_name in self.terms_container.keys():
-                norm_term_obj, steps = self.terms_container[term_name].normalize(
-                    REDUCTION_STRATEGIES_DICT["LO"][0],
-                    is_lim_reduction
-                )
-                self.terms_container[f"{term_name}_red"] = norm_term_obj
-                return f"{term_name}_red - saved as result of reduction\n" \
-                    + f"{steps} steps to normalize\n" \
-                    + f"LO-norm({term_name}) = {norm_term_obj.funky_str()}\n"
+                term_to_norm = self.terms_container[term_name]
+            elif "NUM" in term_name:
+                try:
+                    num_for_term = int(term_name.split("[")[1][:-1])
+                    term_to_norm = eval(f"{LAMBDA_COMMANDS_DICT['NUM']}{num_for_term})")
+                except:
+                    return f"Term with name {term_name} not available"
+            elif term_name in LAMBDA_COMMANDS_DICT.keys():
+                term_to_norm = eval(LAMBDA_COMMANDS_DICT[term_name])
             else:
                 return f"Term with name {term_name} not available"
-        elif len(commands_list) == 3:
-            term_name = commands_list[1].strip()
-            strategy_name = commands_list[2].strip()
-            if (term_name in self.terms_container.keys()) \
-                    and (strategy_name in REDUCTION_STRATEGIES_DICT.keys()):
-                norm_term_obj, steps = self.terms_container[term_name].normalize(
-                    REDUCTION_STRATEGIES_DICT[strategy_name][0],
-                    is_lim_reduction
-                )
-                self.terms_container[f"{term_name}_red_{strategy_name}"] = norm_term_obj
-                return f"{term_name}_red_{strategy_name} - saved as result of reduction\n" \
-                    + f"{steps} steps to normalize\n" \
-                    + f"LO-norm({term_name}) = {norm_term_obj.funky_str()}\n"
-            else:
-                return f"Term with name {term_name} or strategy {strategy_name} not available"
+
+            norm_term_obj, steps = term_to_norm.normalize(
+                REDUCTION_STRATEGIES_DICT[strategy_name][0],
+                is_lim_reduction
+            )
+            self.terms_container[f"{term_name}_red_{strategy_name}"] = norm_term_obj
+            return f"{term_name}_red_{strategy_name} - saved as result of reduction\n" \
+                + f"{steps} steps to normalize\n" \
+                + f"{strategy_name}-norm({term_name}) = {norm_term_obj.funky_str()}\n"
         else:
             return "Wrong reduction command format"
 
