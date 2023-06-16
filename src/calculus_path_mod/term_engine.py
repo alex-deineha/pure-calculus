@@ -272,8 +272,21 @@ class Term:  # the basic abstract class for representing a term
         new_var = Var()
         return Abstraction(
             new_var,
-            self._data[1]._replace_variable(self._data[0], Atom(new_var))._update_bound_vars()
+            self._data[1]._replace_bound_variable(self._data[0], Atom(new_var))._update_bound_vars()
         )
+
+    def _replace_bound_variable(self, var: Var, term):
+        """Return λ-term with replaced variable"""
+        if self.kind == "atom":
+            return term if self._data._data == var._data else self
+        if self.kind == "application":
+            return Application(self._data[0]._replace_bound_variable(var, term),
+                               self._data[1]._replace_bound_variable(var, term))
+        # self is abstraction
+        if self._data[0]._data == var._data:
+            new_var = Var()
+            return Abstraction(new_var, self._data[1]._replace_bound_variable(self._data[0], Atom(new_var)))
+        return Abstraction(self._data[0], self._data[1]._replace_bound_variable(var, term))
 
     def _remove_outer_redex(self):
         """Apply the betta conversion to the lambda term, removing the outer betta redex"""
