@@ -487,6 +487,7 @@ class LambdaCalculusInterpreter:
     def process_commands(self, command_str: str = None):
         if not command_str or command_str == "":
             return None
+        command_str = command_str.replace("\n", " ").strip()
         if self.commands_buffer == "":
             if "#import" in command_str:
                 self.commands_buffer = ""
