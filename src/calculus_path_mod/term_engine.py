@@ -189,11 +189,14 @@ class Term:  # the basic abstract class for representing a term
         # self is Abstraction
         return 1 + self._data[1].vertices_number
 
-    def normalize(self, strategy, is_limited=True):
+    def normalize(self, strategy, is_limited=True, steps_lim=400, vertices_lim=7_000):
         """
         :param strategy: OneStepStrategy
         :param is_limited: if it's True normalization process stops till
-                           vertices_number > 7_000 or count_steps > 400
+                        steps_lim and vertices_lim reached.
+        :param steps_lim: maximum steps to normalize, applied only if is_limited=True
+        :param vertices_lim: maximum count of vertices in the term,
+                        applied only if is_limited=True
         :return: tuple of the normal form of the term and number of steps of betta reduction
         """
         term = self._update_bound_vars()
@@ -202,7 +205,7 @@ class Term:  # the basic abstract class for representing a term
             term = term._beta_conversion(strategy)._update_bound_vars()
             count_steps += 1
             # computation limitation
-            if is_limited and ((term.vertices_number > 7_000) or (count_steps > 400)):
+            if is_limited and ((term.vertices_number > vertices_lim) or (count_steps > steps_lim)):
                 return term, float("inf")
         return term, count_steps
 
