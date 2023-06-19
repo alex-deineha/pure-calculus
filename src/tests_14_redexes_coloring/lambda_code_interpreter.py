@@ -1,5 +1,6 @@
 import sys
 import re
+import time
 
 sys.path.append("../")
 from calculus_path_mod.term_engine import *
@@ -477,13 +478,16 @@ class LambdaCalculusInterpreter:
             else:
                 return f"Term with name {term_name} not available"
 
+            start_time = time.process_time()
             norm_term_obj, steps = term_to_norm.normalize(
                 REDUCTION_STRATEGIES_DICT[strategy_name][0],
                 is_lim_reduction
             )
+            end_time = time.process_time()
+
             self.terms_container[f"{term_name}_red_{strategy_name}"] = norm_term_obj
             return f"{term_name}_red_{strategy_name} - saved as result of reduction\n" \
-                + f"{steps} steps to normalize\n" \
+                + f"{steps} -- steps to normalize,  {(end_time - start_time):.5f}s -- time of normalization\n" \
                 + f"{strategy_name}-norm({term_name}) = {norm_term_obj.funky_str()}\n"
         else:
             return "Wrong reduction command format"
