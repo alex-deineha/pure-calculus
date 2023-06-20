@@ -95,22 +95,27 @@ class Term:  # the basic abstract class for representing a term
 
         return pseudonyms
 
-    def funky_str(self, pseudonyms: dict = None) -> str:
+    def funky_str(self, pseudonyms: dict = None, redex_index=-1) -> str:
         """
         ! Warning when call the method you don't need to set any parameters.
+        :param redex_index: redex index, set actual redex index instead of '-1' to show redex
         :param pseudonyms: dict, where key is a var index and var is a variable name
         :return: str representation of the
         """
 
+        redex_index -= 1
         if pseudonyms is None:
             pseudonyms = self._get_var_pseudonyms()
         if self.kind == "atom":
             return pseudonyms[self._data._data]
         if self.kind == "application":
-            return (
-                f"({self._data[0].funky_str(pseudonyms)} {self._data[1].funky_str(pseudonyms)})"
-            )
-        return f"(λ{pseudonyms[self._data[0]._data]}.{self._data[1].funky_str(pseudonyms)})"
+            if redex_index == 0:
+                return f"[>> {self._data[0].funky_str(pseudonyms, redex_index)} *** " \
+                       f"{self._data[1].funky_str(pseudonyms, redex_index - self._data[0].vertices_number)} <<]"
+            else:
+                return f"({self._data[0].funky_str(pseudonyms, redex_index)} " \
+                       f"{self._data[1].funky_str(pseudonyms, redex_index - self._data[0].vertices_number)})"
+        return f"(λ{pseudonyms[self._data[0]._data]}.{self._data[1].funky_str(pseudonyms, redex_index)})"
 
     # def __eq__(self, another):
     #     if isinstance(another, Term):
