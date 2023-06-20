@@ -1,3 +1,5 @@
+import time
+
 DEF_VAR_NAMES = "xyabcdejinmtrqwuopsfghklzv"
 
 
@@ -193,6 +195,49 @@ class Term:  # the basic abstract class for representing a term
             return 1 + self._data[0].vertices_number + self._data[1].vertices_number
         # self is Abstraction
         return 1 + self._data[1].vertices_number
+
+
+    def one_step_normalize_visual(self, strategy):
+        """
+        :param strategy:OneStepStrategy
+        :return: (term, redex_index, process_time), reduced_term
+        """
+        term = self._update_bound_vars()
+
+        if len(term.redexes) > 0:
+            start_time = time.process_time()
+            redex_index = strategy.redex_index(term)
+            reduced_term = term._beta_conversion_visual(redex_index)
+            end_time = time.process_time()
+            return (term, redex_index, end_time - start_time), reduced_term
+        else:
+            return (term, -1, -1), None
+
+    def _beta_conversion_visual(self, redex_index):
+        """
+        :param redex_index: a redex position in the tree term.
+        :return: term with redex eliminated using the given strategy
+        """
+        subterm_ = self.subterm(redex_index)
+        reduced_term = subterm_._remove_outer_redex()
+        return self.set_subterm(redex_index, reduced_term)
+
+    def normalize_visual(self, strategy):
+        """
+        :param strategy: OneStepStrategy
+        :return: list of (step_term, redex_index, reduction_time)
+        """
+        list_steps = list()
+        (step_term, redex_index, reduction_time), norm_term = self.one_step_normalize_visual(strategy)
+        list_steps.append((step_term, redex_index, reduction_time))
+
+        while norm_term:
+            (step_term, redex_index, reduction_time), norm_term = norm_term.one_step_normalize_visual(strategy)
+            list_steps.append((step_term, redex_index, reduction_time))
+            # computation limitation
+            if (step_term.vertices_number > 7_000) or (len(list_steps) > 400):
+                raise Exception("Too many vertices, or too many steps to visualize")
+        return list_steps
 
     def normalize(self, strategy, is_limited=True, steps_lim=400, vertices_lim=7_000):
         """
