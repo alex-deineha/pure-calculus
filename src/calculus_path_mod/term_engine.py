@@ -196,6 +196,30 @@ class Term:  # the basic abstract class for representing a term
         # self is Abstraction
         return 1 + self._data[1].vertices_number
 
+    @property
+    def term_width(self):
+        """:return: count of applications in the term"""
+
+        if self.kind == "atom":
+            return 0
+        if self.kind == "application":
+            return 1 + self._data[0].term_width + self._data[1].term_width
+        # self is Abstraction
+        return self._data[1].term_width
+
+    @property
+    def term_high(self):
+        """:return: longest recursion length in the term tree"""
+
+        if self.kind == "atom":
+            return 0
+        if self.kind == "application":
+            return 1 + max(self._data[0].term_high, self._data[1].term_high)
+        # self is Abstraction
+        return 1 + self._data[1].term_high
+
+    def normalize_params(self, strategy, is_limited=True, steps_lim=400, vertices_lim=7_000):
+        pass
 
     def one_step_normalize_visual(self, strategy):
         """
