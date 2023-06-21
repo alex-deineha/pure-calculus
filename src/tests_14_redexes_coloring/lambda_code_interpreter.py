@@ -2,6 +2,10 @@ import sys
 import re
 import time
 
+import numpy as np
+
+from execution_limiter import execution_time_limiter
+
 sys.path.append("../")
 from calculus_path_mod.term_engine import *
 from calculus_path_mod.reduction_strategy import *
@@ -106,15 +110,18 @@ HELP_STR = """#help -- to call this menu
 #import /path_to_lib/lib_file.lmd -- for including terms from other file. 
                 It must have a name in which will be defined a term
 #define term_name = term_definition # -- for defining term in the memory,
-                MUST ENDS on '#' symbol for allowing multiline input 
-#reduce term_name -- reduce the term by term_name by LeftOuter str, 
-                reduced term will appear in term_name_red_LO
+                MUST ENDS on '#' symbol for allowing multiline input
+                 
 #reduce term_name STRATEGY_NAME -- reduce term by term_name with defined strategy
-                reduced term will appear in term_name_red_strategy_name
-#reduce-no-lim term_name -- reduce the term by term_name by LeftOuter str, 
-                reduced term will appear in term_name_red_LO
-#reduce-no-lim term_name STRATEGY_NAME -- reduce term by term_name with defined strategy
-                reduced term will appear in term_name_red_strategy_name"""
+                reduced term will appear in term_name_red_strategy_name, 
+                STRATEGY_NAME isn't mandatory, if it doesn't set, system use 
+                Leftmost Outermost strategy.
+For command '#reduce' you can set unlimited execution with commands separated
+via '-', with following commands you can:
+* nolim        -- set unlimited normalization process
+* tlim_TIMESEC -- set a normalization limit in SECONDS
+* lim_STEPS    -- set a normalization limit in NORMALIZATION STEPS
+* vis          -- visualize a normalization process"""
 
 SYNTAX_HELP_STR = """Lamda Calculus syntax rules:
 
@@ -452,11 +459,26 @@ class LambdaCalculusInterpreter:
         except Exception as eee:
             return f"ERROR: Can't parse lmd-code, it has wrong format, please reformat it!\nError: {eee}"
 
-    def console_engine_reduce(self, command_std: str = None, is_lim_reduction=True):
+    def console_engine_reduce(self, command_std: str = None):
         commands_list = command_std.strip().split()
         commands_list = [comm_ for comm_ in commands_list if comm_ != ""]
 
         if len(commands_list) > 1:
+            reduce_params = commands_list[0].split("-")
+            is_visualize = "vis" in reduce_params
+            is_limited = "nolim" not in reduce_params
+            steps_limit = -1
+            time_limit = -1
+
+            try:
+                for rparam in reduce_params:
+                    if "tlim_" in rparam:
+                        time_limit = float(rparam.split("_")[1])
+                    elif "lim_" in rparam:
+                        steps_limit = int(rparam.split("_")[1])
+            except:
+                return "Can't parse '#reduce' additional parameters"
+
             term_name = commands_list[1].strip()
             strategy_name = commands_list[2].strip() if len(commands_list) == 3 else "LO"
 
@@ -478,17 +500,66 @@ class LambdaCalculusInterpreter:
             else:
                 return f"Term with name {term_name} not available"
 
-            start_time = time.process_time()
-            norm_term_obj, steps = term_to_norm.normalize(
-                REDUCTION_STRATEGIES_DICT[strategy_name][0],
-                is_lim_reduction
-            )
-            end_time = time.process_time()
+            if is_visualize:
+                try:
+                    list_steps = term_to_norm.normalize_visual(REDUCTION_STRATEGIES_DICT[strategy_name][0])
+                    total_time = 0.0
+                    steps_vis_str = f"Normalization steps for '{term_name}' with strategy '{strategy_name}'\n\n"
+                    for idx, (step_term, redex_index, reduction_time) in enumerate(list_steps):
+                        if redex_index == -1:
+                            steps_vis_str += \
+                                f"\nNormalization time: {total_time:.5f}s, steps: {idx}, " \
+                                f"normalized term: {step_term.funky_str(redex_index=redex_index)}\n"
+                        else:
+                            total_time += reduction_time
+                            steps_vis_str += \
+                                f"{idx}) time: {reduction_time:.5f}s, " \
+                                f"term: {step_term.funky_str(redex_index=redex_index)}\n"
 
-            self.terms_container[f"{term_name}_red_{strategy_name}"] = norm_term_obj
-            return f"{term_name}_red_{strategy_name} - saved as result of reduction\n" \
-                + f"{steps} -- steps to normalize,  {(end_time - start_time):.5f}s -- time of normalization\n" \
-                + f"{strategy_name}-norm({term_name}) = {norm_term_obj.funky_str()}\n"
+                    self.terms_container[f"{term_name}_red_{strategy_name}"] = list_steps[-1][0]
+                    steps_vis_str += f"{term_name}_red_{strategy_name} - saved as result of reduction\n"
+                    steps_vis_str += f"{strategy_name}-norm({term_name}) = {list_steps[-1][0].funky_str()}\n"
+                    return steps_vis_str
+                except Exception as err:
+                    return f"ERROR: {err}"
+            else:
+                if steps_limit > 0:
+                    start_time = time.process_time()
+                    norm_term_obj, steps = term_to_norm.normalize(
+                        REDUCTION_STRATEGIES_DICT[strategy_name][0],
+                        True, steps_lim=steps_limit
+                    )
+                    end_time = time.process_time()
+                    steps = min(steps_limit, steps)
+                elif time_limit > 0:
+                    try:
+                        start_time = time.process_time()
+                        with execution_time_limiter(time_limit, 'term normalization'):
+                            norm_term_obj, steps = term_to_norm.normalize(
+                                REDUCTION_STRATEGIES_DICT[strategy_name][0],
+                                is_limited=False
+                            )
+                        end_time = time.process_time()
+                    except Exception:
+                        norm_term_obj = term_to_norm
+                        steps = np.Inf
+                        start_time, end_time = 0.0, time_limit
+                else:
+                    start_time = time.process_time()
+                    norm_term_obj, steps = term_to_norm.normalize(
+                        REDUCTION_STRATEGIES_DICT[strategy_name][0],
+                        is_limited
+                    )
+                    end_time = time.process_time()
+
+                if norm_term_obj.redexes == 0:
+                    self.terms_container[f"{term_name}_red_{strategy_name}"] = norm_term_obj
+                    return f"{term_name}_red_{strategy_name} - saved as result of reduction\n" \
+                        + f"{steps} -- steps to normalize,  {(end_time - start_time):.5f}s -- time of normalization\n" \
+                        + f"{strategy_name}-norm({term_name}) = {norm_term_obj.funky_str()}\n"
+                else:
+                    return f"{term_name} wasn't normalized\n" \
+                        + f"{steps} -- steps tried,  {(end_time - start_time):.5f}s -- spend time\n"
         else:
             return "Wrong reduction command format"
 
@@ -498,16 +569,10 @@ class LambdaCalculusInterpreter:
 
         if self.commands_buffer == "":
             if "#import" in command_str:
-                self.commands_buffer = ""
                 return self.console_engine_import(command_str)
-            elif "#reduce-no-lim" in command_str:
-                self.commands_buffer = ""
-                return self.console_engine_reduce(command_str, False)
             elif "#reduce" in command_str:
-                self.commands_buffer = ""
-                return self.console_engine_reduce(command_str, False)
+                return self.console_engine_reduce(command_str)
             elif "#define" in command_str:
-                self.commands_buffer = ""
                 if command_str.strip().endswith("#"):
                     return self.console_engine_define(command_str)
                 else:
