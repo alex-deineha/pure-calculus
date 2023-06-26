@@ -208,15 +208,15 @@ class Term:  # the basic abstract class for representing a term
         return self._data[1].term_width
 
     @property
-    def term_high(self):
+    def term_height(self):
         """:return: longest recursion length in the term tree"""
 
         if self.kind == "atom":
             return 0
         if self.kind == "application":
-            return 1 + max(self._data[0].term_high, self._data[1].term_high)
+            return 1 + max(self._data[0].term_height, self._data[1].term_height)
         # self is Abstraction
-        return 1 + self._data[1].term_high
+        return 1 + self._data[1].term_height
 
     def normalize_params(self, strategy, is_limited=True, steps_lim=400, vertices_lim=7_000):
         pass
