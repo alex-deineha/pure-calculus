@@ -218,8 +218,52 @@ class Term:  # the basic abstract class for representing a term
         # self is Abstraction
         return 1 + self._data[1].term_height
 
-    def normalize_params(self, strategy, is_limited=True, steps_lim=400, vertices_lim=7_000):
-        pass
+    def redex_depth(self, redex_index):
+        if redex_index == -1:
+            return -1
+        elif redex_index == 1:
+            return 1
+        if self.kind == "atom":
+            raise ValueError("Redex index value is incorrect")
+        elif self.kind == "application":
+            if self._data[0].vertices_number + 1 >= redex_index:
+                return 1 + self._data[0].redex_depth(redex_index - 1)
+            else:
+                return 1 + self._data[1].redex_depth(redex_index - self._data[0].vertices_number - 1)
+        else:
+            return 1 + self._data[1].redex_depth(redex_index - 1)
+
+    def normalize_with_params(self, strategy, is_limited=True, steps_lim=400, vertices_lim=7_000):
+        norm_params = {
+            "vertices": [self.vertices_number],
+            "redexes": [len(self.redexes)],
+            "redex_depths": [],
+            "redex_indexes": [],
+            "heights": [self.term_height],
+            "widths": [self.term_width],
+            "steps_time": [],
+        }
+
+        (step_term, redex_index, reduction_time), norm_term = self.one_step_normalize_visual(strategy)
+        norm_params["redex_depths"].append(self.redex_depth(redex_index))
+        norm_params["redex_indexes"].append(redex_index)
+        norm_params["steps_time"].append(reduction_time)
+
+        while norm_term:
+            (step_term, redex_index, reduction_time), norm_term = norm_term.one_step_normalize_visual(strategy)
+            norm_params["vertices"].append(step_term.vertices_number)
+            norm_params["redexes"].append(len(step_term.redexes))
+            norm_params["heights"].append(step_term.term_height)
+            norm_params["widths"].append(step_term.term_width)
+            norm_params["redex_depths"].append(step_term.redex_depth(redex_index))
+            norm_params["redex_indexes"].append(redex_index)
+            norm_params["steps_time"].append(reduction_time)
+
+            # computation limitation
+            if is_limited and ((step_term.vertices_number > vertices_lim) or (len(norm_params) > steps_lim)):
+                raise Exception("Too many vertices, or too many steps to visualize")
+
+        return norm_params
 
     def one_step_normalize_visual(self, strategy):
         """
