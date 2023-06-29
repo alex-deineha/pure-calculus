@@ -235,7 +235,7 @@ class Term:  # the basic abstract class for representing a term
             end_time = time.process_time()
             return (term, redex_index, end_time - start_time), reduced_term
         else:
-            return (term, -1, -1), None
+            return (term, -1, 0), None
 
     def _beta_conversion_visual(self, redex_index):
         """
