@@ -273,10 +273,10 @@ class Term:  # the basic abstract class for representing a term
         term = self._update_bound_vars()
 
         if len(term.redexes) > 0:
-            start_time = time.process_time()
+            start_time = time.process_time_ns()
             redex_index = strategy.redex_index(term)
             reduced_term = term._beta_conversion_visual(redex_index)
-            end_time = time.process_time()
+            end_time = time.process_time_ns()
             return (term, redex_index, end_time - start_time), reduced_term
         else:
             return (term, -1, 0), None
