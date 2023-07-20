@@ -1,0 +1,5 @@
+,vertices_pre,redexes_pre,height_pre,width_pre,vertices_post,redexes_post,height_post,width_post,redex_depth,redex_index,step_time,vertices_diff,redexes_diff,height_diff,width_diff
+0,55,2,19,21,52,1,19,20,6,6,-276771,3.0,1.0,0.0,1.0
+1,55,2,19,21,52,1,18,20,12,19,-326192,3.0,1.0,1.0,1.0
+2,52,1,19,20,49,0,18,19,12,16,-333629,3.0,1.0,1.0,1.0
+3,52,1,18,20,49,0,18,19,6,6,-200148,3.0,1.0,0.0,1.0
