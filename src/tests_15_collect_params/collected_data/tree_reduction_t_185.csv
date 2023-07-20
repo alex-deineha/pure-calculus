@@ -1,7 +1,7 @@
-,vertices_pre,redexes_pre,height_pre,width_pre,vertices_post,redexes_post,height_post,width_post,redex_depth,redex_index,step_time,vertices_diff,redexes_diff,height_diff,width_diff
-0,51,1,14,19,48,1,15,18,11,32,-269622,3.0,0.0,-1.0,1.0
-1,48,1,15,18,45,1,13,17,10,31,-291423,3.0,0.0,2.0,1.0
-2,45,1,13,17,42,1,12,16,9,30,-194002,3.0,0.0,1.0,1.0
-3,42,1,12,16,39,1,12,15,8,29,-164619,3.0,0.0,0.0,1.0
-4,39,1,12,15,36,1,12,14,8,29,-155072,3.0,0.0,0.0,1.0
-5,36,1,12,14,33,0,12,13,8,29,-150006,3.0,1.0,0.0,1.0
+vertices_pre,redexes_pre,height_pre,width_pre,vertices_post,redexes_post,height_post,width_post,redex_depth,redex_index,step_time,vertices_diff,redexes_diff,height_diff,width_diff
+51,1,14,19,48,1,15,18,11,32,269622,3.0,0.0,-1.0,1.0
+48,1,15,18,45,1,13,17,10,31,291423,3.0,0.0,2.0,1.0
+45,1,13,17,42,1,12,16,9,30,194002,3.0,0.0,1.0,1.0
+42,1,12,16,39,1,12,15,8,29,164619,3.0,0.0,0.0,1.0
+39,1,12,15,36,1,12,14,8,29,155072,3.0,0.0,0.0,1.0
+36,1,12,14,33,0,12,13,8,29,150006,3.0,1.0,0.0,1.0
