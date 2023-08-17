@@ -119,6 +119,14 @@ class Term:  # the basic abstract class for representing a term
                        f"{self._data[1].funky_str(pseudonyms, redex_index - self._data[0].vertices_number)})"
         return f"(λ{pseudonyms[self._data[0]._data]}.{self._data[1].funky_str(pseudonyms, redex_index)})"
 
+    def simple_str(self):
+        if self.kind == "atom":
+            return "x"
+        if self.kind == "application":
+            return f"({self._data[0].simple_str()} {self._data[1].simple_str()})"
+        else:  # self.kind == "absraction"
+            return f"(@x. {self._data[1].simple_str()})"
+
     # def __eq__(self, another):
     #     if isinstance(another, Term):
     #         if self.kind != another.kind:
