@@ -119,6 +119,27 @@ class Term:  # the basic abstract class for representing a term
                        f"{self._data[1].funky_str(pseudonyms, redex_index - self._data[0].vertices_number)})"
         return f"(λ{pseudonyms[self._data[0]._data]}.{self._data[1].funky_str(pseudonyms, redex_index)})"
 
+    def funky_v2_str(self, pseudonyms: dict = None, redex_index=-1) -> str:
+        """
+        ! Use this method for preparing preprocessing your
+        :param redex_index: redex index, set actual redex index instead of '-1' to show redex
+        :param pseudonyms: dict, where key is a var index and var is a variable name
+        :return: str representation of the term
+        """
+
+        redex_index -= 1
+        if pseudonyms is None:
+            pseudonyms = self._get_var_pseudonyms()
+        if self.kind == "atom":
+            return pseudonyms[self._data._data]
+        if self.kind == "application":
+            if redex_index == 0:
+                return ""
+            else:
+                return f"({self._data[0].funky_v2_str(pseudonyms, redex_index)} " \
+                       f"{self._data[1].funky_v2_str(pseudonyms, redex_index - self._data[0].vertices_number)})"
+        return f"[{pseudonyms[self._data[0]._data]} {self._data[1].funky_v2_str(pseudonyms, redex_index)}]"
+
     def simple_str(self):
         if self.kind == "atom":
             return "x"
