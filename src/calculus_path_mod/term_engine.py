@@ -294,6 +294,74 @@ class Term:  # the basic abstract class for representing a term
 
         return norm_params
 
+    def count_same_vars(self, var_):
+        if self.kind == "atom":
+            return 1 if self._data == var_ else 0
+        if self.kind == "application":
+            return self._data[0].count_same_vars(var_) + self._data[1].count_same_vars(var_)
+        return self._data[1].count_same_vars(var_)
+
+    def normalize_with_params_v2(self, strategy, is_limited=True, steps_lim=400, vertices_lim=7_000):
+        norm_params = {
+            "vertices": [self.vertices_number],
+            "redexes": [len(self.redexes)],
+            "redex_depths": [],
+            "redex_indexes": [],
+            "heights": [self.term_height],
+            "widths": [self.term_width],
+
+            "redex_subj_vars": [],
+            "redex_obj_vertices": [],
+            "redex_obj_heights": [],
+            "redex_obj_widths": [],
+
+            "steps_time": [],
+        }
+
+        (step_term, redex_index, reduction_time), norm_term = self.one_step_normalize_visual(strategy)
+
+        redex_term = self.subterm(redex_index)
+        norm_params["redex_subj_vars"].append(redex_term._data[0].count_same_vars(redex_term._data[0]._data[0]))
+        norm_params["redex_obj_vertices"].append(redex_term._data[1].vertices_number)
+        norm_params["redex_obj_heights"].append(redex_term._data[1].term_height)
+        norm_params["redex_obj_widths"].append(redex_term._data[1].term_width)
+
+        norm_params["redex_depths"].append(self.redex_depth(redex_index))
+        norm_params["redex_indexes"].append(redex_index)
+        norm_params["steps_time"].append(reduction_time)
+
+        while norm_term:
+            try:
+                redex_index = strategy.redex_index(norm_term)
+            except Exception:
+                redex_index = -1
+            if redex_index > 0:
+                redex_term = norm_term.subterm(redex_index)
+                norm_params["redex_subj_vars"].append(redex_term._data[0].count_same_vars(redex_term._data[0]._data[0]))
+                norm_params["redex_obj_vertices"].append(redex_term._data[1].vertices_number)
+                norm_params["redex_obj_heights"].append(redex_term._data[1].term_height)
+                norm_params["redex_obj_widths"].append(redex_term._data[1].term_width)
+            else:
+                norm_params["redex_subj_vars"].append(-1)
+                norm_params["redex_obj_vertices"].append(-1)
+                norm_params["redex_obj_heights"].append(-1)
+                norm_params["redex_obj_widths"].append(-1)
+
+            (step_term, redex_index, reduction_time), norm_term = norm_term.one_step_normalize_visual(strategy)
+            norm_params["vertices"].append(step_term.vertices_number)
+            norm_params["redexes"].append(len(step_term.redexes))
+            norm_params["heights"].append(step_term.term_height)
+            norm_params["widths"].append(step_term.term_width)
+            norm_params["redex_depths"].append(step_term.redex_depth(redex_index))
+            norm_params["redex_indexes"].append(redex_index)
+            norm_params["steps_time"].append(reduction_time)
+
+            # computation limitation
+            if is_limited and ((step_term.vertices_number > vertices_lim) or (len(norm_params) > steps_lim)):
+                raise Exception("Too many vertices, or too many steps to visualize")
+
+        return norm_params
+
     def one_step_normalize_visual(self, strategy):
         """
         :param strategy:OneStepStrategy
