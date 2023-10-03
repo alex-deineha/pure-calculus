@@ -1,0 +1,6 @@
+,vertices,redexes,redex_depths,redex_indexes,heights,widths,redex_subj_vars,redex_obj_vertices,redex_obj_heights,redex_obj_widths,steps_time
+0,54,3,2,2,14,21,1,2,1,0,57816
+1,51,3,9,23,14,20,1,4,2,1,430677
+2,48,2,7,43,12,19,1,1,0,0,255016
+3,45,1,1,1,12,18,1,42,11,17,81468
+4,42,0,-1,-1,11,17,-1,-1,-1,-1,0
