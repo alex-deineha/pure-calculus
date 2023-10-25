@@ -1,6 +1,6 @@
 import time
 
-DEF_VAR_NAMES = "xyabcdejinmtrqwuopsfghklzv"
+DEF_VAR_NAMES = "xyzabcdejinmtrqwuopsfghklv"
 
 
 class LambdaError(Exception):
@@ -36,6 +36,10 @@ class Var:
             return self._data == another._data
         raise LambdaError("Var.__eq__ waits for an instance of Var"
                           f", but it received '{another}'")
+
+    def set_cvar(self, cvar):
+        self._data = cvar
+        return self
 
 
 class Term:  # the basic abstract class for representing a term
@@ -148,6 +152,92 @@ class Term:  # the basic abstract class for representing a term
         else:  # self.kind == "absraction"
             return f"(@x. {self._data[1].simple_str()})"
 
+    def to_combinatory_logic(self):
+        """
+        T[ ] may be defined as follows:
+
+        1. T[x] => x
+        2. T[(E₁ E₂)] => (T[E₁] T[E₂])
+        3. T[λx.x] => I
+        4. T[λxy.x] => K
+        5. T[λxyz.xz(yz)] => S
+        6. T[λx.E] => (K T[E]) (if x does not occur free in E)  # @x. (x y) -> K (x x)
+        7. T[λx.λy.E] => T[λx.T[λy.E]] (if x occurs free in E)  # @x. @y. (y x) -> @x. T[@y. (y x)] -> @x. K (T[y] T[x]) -> @x K (x x)
+        8. T[λx.(E₁ E₂)] => (S T[λx.E₁] T[λx.E₂]) (if x occurs free in E₁ or E₂)
+        """
+
+        # 1. T[x] => x
+        if self.kind == "atom":
+            return self
+
+        # 2. T[(E₁ E₂)] => (T[E₁] T[E₂])
+        if self.kind == "application":
+            return Application(self._data[0].to_combinatory_logic(), self._data[1].to_combinatory_logic())
+
+        x, y, z = Var(), Var(), Var()
+        x_, y_, z_ = Atom(x), Atom(y), Atom(z)
+        i_term = Abstraction(x, x_)
+        k_term = Abstraction(x, Abstraction(y, x_))
+        s_term =  Abstraction(x, Abstraction(y, Abstraction(
+            z,
+            Application(Application(x_, z_), Application(y_, z_))
+        )))
+
+        # 3. T[λx.x] => I
+        if self.funky_str() == i_term.funky_str():
+            return i_term
+
+        # 4. T[λxy.x] => K
+        if self.funky_str() == k_term.funky_str():
+            return k_term
+
+        # 5. T[λxyz.xz(yz)] => S
+        if self.funky_str() == s_term.funky_str():
+            return s_term
+
+        abstr_var = self._data[0]
+        abstr_body = self._data[1]
+
+        # 6. T[λx.E] => (K T[E]) (if x does not occur free in E)
+        if abstr_body.count_vars(abstr_var) == 0:
+            return Application(k_term, abstr_body.to_combinatory_logic())
+
+        # 7. T[λx.λy.E] => T[λx.T[λy.E]] (if x occurs free in E)
+        if abstr_body.kind == "abstraction":
+            return Abstraction(abstr_var, abstr_body.to_combinatory_logic()).to_combinatory_logic()
+
+        # 8. T[λx.(E₁ E₂)] => (S T[λx.E₁] T[λx.E₂]) (if x occurs free in E₁ or E₂)
+        if abstr_body.kind == "application":
+            return  Application(
+                Application(s_term, Abstraction(abstr_var, abstr_body._data[0]).to_combinatory_logic()),
+                Abstraction(abstr_var, abstr_body._data[1]).to_combinatory_logic()
+            )
+
+    def to_combinatory_str(self):
+        x, y, z = Var(), Var(), Var()
+        x_, y_, z_ = Atom(x), Atom(y), Atom(z)
+        i_term = Abstraction(x, x_)
+        k_term = Abstraction(x, Abstraction(y, x_))
+        s_term = Abstraction(x, Abstraction(y, Abstraction(
+            z,
+            Application(Application(x_, z_), Application(y_, z_))
+        )))
+
+        if self.funky_str() == i_term.funky_str():
+            return "I"
+        if self.funky_str() == k_term.funky_str():
+            return "K"
+        if self.funky_str() == s_term.funky_str():
+            return "S"
+
+        if self.kind == "application":
+            return f"({self._data[0].to_combinatory_str()} {self._data[1].to_combinatory_str()})"
+        if self.kind == "atom":
+            return "x"
+
+        # ERROR:
+        return f"[ERROR: {self.funky_str()} :ERROR]"
+
     # def __eq__(self, another):
     #     if isinstance(another, Term):
     #         if self.kind != another.kind:
@@ -185,6 +275,13 @@ class Term:  # the basic abstract class for representing a term
         redexes_list = [self] if self.is_beta_redex else []
         redexes_list += self._data[0].redexes + self._data[1].redexes
         return redexes_list
+
+    def count_vars(self, var):
+        if self.kind == "atom":
+            return 1 if var == self._data else 0
+        if self.kind == "application":
+            return self._data[0].count_vars(var) + self._data[1].count_vars(var)
+        return self._data[1].count_vars(var)
 
     @property
     def _vars(self):
